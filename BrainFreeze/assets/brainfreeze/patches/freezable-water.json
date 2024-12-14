@@ -1,0 +1,88 @@
+[
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
+    "path": "/variantGroups",
+    "value": [
+      {
+        "code": "frozen",
+        "combine": "Add",
+        "states": [ "frozen" ]
+      }
+    ]
+  },
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
+    "path": "/transitionablePropsByType",
+    "value": {
+      "waterportion": [
+        {
+          "type": "Freeze",
+          "transitionHours": {
+            "avg": 24,
+            "freshHours": { "avg": 0 }
+          },
+          "transitionedStack": {
+            "type": "item",
+            "code": "game:waterportion-frozen" //TODO maybe custom ice block
+          },
+          "transitionRatio": 1 //TODO maybe have slush as an in between
+        }
+      ]
+    }
+  },
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
+    "path": "/attributes/waterTightContainerPropsByType",
+    "value": {
+      "*-frozen": {
+        "containable": true,
+        "itemsPerLitre": 100,
+        "texture": { "base": "block/liquid/ice/lake1" },
+        "AllowSpill": false
+      }
+    }
+  },
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
+    "path": "/attributes/matterStateByType",
+    "value": {
+      "*-frozen": "Solid"
+    }
+  }
+  //,{
+  //  "file": "game:itemtypes/liquid/waterportion.json",
+  //  "op": "addmerge",
+  //  "path": "/transitionableProps",
+  //  "value": [
+  //    {
+  //      "type": "Freeze",
+  //      "transitionHours": {
+  //        "avg": 24,
+  //        "freshHours": { "avg": 8 }
+  //      },
+  //      "transitionedStack": {
+  //        "type": "block",
+  //        "code": "game:lakeice" //TODO maybe custom ice block
+  //      },
+  //      "transitionRatio": 0.01 //TODO maybe have slush as an in between
+  //    }
+  //  ]
+  //},
+  ////TODO barrels?
+  ////TODO prevent transferring between liquid containers
+  //{
+  //  "file": "game:blocktypes/liquid/lakeice.json",
+  //  "op": "add",
+  //  "path": "/attributes/waterTightContainerProps",
+  //  "value": {
+  //    "containable": true,
+  //    "itemsPerLitre": 100, //TODO stacksize!
+  //    "texture": { "base": "block/liquid/ice/lake1" },
+  //    "AllowSpill"
+  //  }
+  //} //TODO make it so you can't get it out of bottles if it's ice :p
+]

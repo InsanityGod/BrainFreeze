@@ -1,0 +1,7 @@
+{
+  "itemstack-freeze": "<font color=\"burlywood\">Freezable.</font>",
+  "itemstack-freeze-progression": "<font color=\"burlywood\">Freezable.</font> {0}% frozen",
+  "itemstack-freeze-duration-days": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a day|# day|# days}",
+  "itemstack-freeze-duration-hours": "Will <font color=\"burlywood\">freeze</font> in {p0:less than an hour|# hour|# hours}",
+  "game:incontainer-item-waterportion-frozen": "Frozen Water"
+}
