@@ -1,15 +1,19 @@
-﻿using CustomTransitionLib;
+﻿using BrainFreeze.HarmonyPatches;
+using CustomTransitionLib;
 using HarmonyLib;
 using System.Linq;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace BrainFreeze
 {
     public class BrainFreezeModSystem : ModSystem
     {
         private Harmony harmony;
+
         // Called on server and client
         // Useful for registering block/entity classes on both sides
         public override void Start(ICoreAPI api)
@@ -22,13 +26,6 @@ namespace BrainFreeze
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
             registry.Register(new BrainFreezeTransitionHandler());
         }
-
-        //public override void AssetsFinalize(ICoreAPI api)
-        //{
-        //    base.AssetsFinalize(api);
-
-        //    var water = api.World.Items.Where(item => item?.Code?.ToString()?.Contains("game:waterportion") ?? false).ToList();
-        //}
 
         public override void Dispose()
         {

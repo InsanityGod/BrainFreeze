@@ -1,4 +1,5 @@
-﻿using CustomTransitionLib.interfaces;
+﻿using CustomTransitionLib;
+using CustomTransitionLib.interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,28 +17,22 @@ namespace BrainFreeze
 
         public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumBrainFreezeTransitionType transType, float currentResult)
         {
-            if(world.Api.Side == EnumAppSide.Server)
+            var pos = inSlot.Inventory?.Pos;
+            float multiplier = 0;
+            if(pos != null)
             {
-                Console.WriteLine("Server Side Trigger");
+                var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
+                multiplier = climate.Temperature >= 0 ? 
+                    (-1f / 20f) * climate.Temperature:
+                    (-1f / 10f) * climate.Temperature;
             }
-            else
+            
+            if(transType == EnumBrainFreezeTransitionType.Thaw)
             {
-                Console.WriteLine("Client side trigger");
-            }
-            //TODO This is being called way too often client side
-            var pos = inSlot?.Inventory?.Pos;
-            if(pos == null) return 0;
-
-            var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
-            switch (transType)
-            {
-                case EnumBrainFreezeTransitionType.Freeze:
-                    if(climate.Temperature > 0) return 0;
-                    return (20 - climate.Temperature) / 20;
+                multiplier *= -1;
             }
 
-
-            return 1;
+            return multiplier;
         }
     }
 }
