@@ -58,13 +58,50 @@
   {
     "file": "game:itemtypes/liquid/waterportion.json",
     "op": "addmerge",
+    "path": "/textureByType",
+    "value": {
+      "*-frozen": {
+        "base": "block/liquid/ice/lake1"
+      }
+    }
+  },
+  //{ //TOOD maybe use this for auto regitered liquids?
+  //  "file": "game:itemtypes/liquid/waterportion.json",
+  //  "op": "addmerge",
+  //  "path": "/attributes/waterTightContainerPropsByType",
+  //  "value": {
+  //    "*-frozen": {
+  //      "containable": true,
+  //      "itemsPerLitre": 100,
+  //      "texture": {
+  //        "base": "block/liquid/waterportion",
+  //        "blendedOverlays": [
+  //          {
+  //            "base": "brainfreeze:block/liquid/ice/overlay"
+  //          }
+  //        ]
+  //      },
+  //      "AllowSpill": false
+  //    }
+  //  }
+  //},
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
+    "path": "/attributes/matterStateByType",
+    "value": {
+      "*-frozen": "Solid"
+    }
+  },
+  {
+    "file": "game:itemtypes/liquid/waterportion.json",
+    "op": "addmerge",
     "path": "/attributes/matterStateByType",
     "value": {
       "*-frozen": "Solid"
     }
   }
-  //TODO BlockLiquidContainerTopOpened.CanDrinkFrom
-  //TODO AllowHeldLiquidTransfer
+  //TODO BlockLiquidContainerTopOpened.CanDrinkFrom (for auto added stuff)
   //TODO slush
   //TODO barrels?
   //TODO Allow for heating in campfire
