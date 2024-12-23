@@ -92,14 +92,6 @@
     "value": {
       "*-frozen": "Solid"
     }
-  },
-  {
-    "file": "game:itemtypes/liquid/waterportion.json",
-    "op": "addmerge",
-    "path": "/attributes/matterStateByType",
-    "value": {
-      "*-frozen": "Solid"
-    }
   }
   //TODO BlockLiquidContainerTopOpened.CanDrinkFrom (for auto added stuff)
   //TODO slush

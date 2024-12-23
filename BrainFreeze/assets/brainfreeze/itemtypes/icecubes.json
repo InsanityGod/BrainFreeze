@@ -7,7 +7,7 @@
 	"creativeinventory": {
 		"general": [ "*" ],
 		"items": [ "*" ],
-		"BrainFreeze": [ "*" ]
+		"brainfreeze": [ "*" ]
 	},
 	"materialDensity": 900,
 	"guiTransform": {

@@ -19,11 +19,17 @@ namespace BrainFreeze
 {
     public class BrainFreezeModSystem : ModSystem
     {
+
+
         private const string ConfigName = "BrainFreezeConfig.json";
 
         public static ModConfig Config { get; private set; }
 
         private Harmony harmony;
+
+        public BrainFreezeModSystem()
+        {
+        }
 
         public override void StartPre(ICoreAPI api) => LoadConfig(api);
 
@@ -55,6 +61,12 @@ namespace BrainFreeze
             api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
         }
 
+        public override void StartServerSide(ICoreServerAPI api)
+        {
+            //TODO ice freezing
+            base.StartServerSide(api);
+        }
+
         public override void Dispose()
         {
             harmony?.UnpatchAll();
@@ -63,40 +75,8 @@ namespace BrainFreeze
 
         public override void AssetsFinalize(ICoreAPI api)
         {
-            var overLay = new BlendedOverlayTexture
-            {
-                Base = new AssetLocation("game:textures/block/liquid/ice/lake1"),
-                BlendMode = EnumColorBlendMode.Overlay
-            };
 
-            //var overlayArr = new object[]
-            //{
-            //    new
-            //    {
-            //        Base = "block/liquid/ice/lake1",
-            //        BlendMode = nameof(EnumColorBlendMode.Overlay)
-            //    }
-            //};
-
-            foreach(var item in api.World.Items)
-            {
-                if (item.Variant["frozen"] != null)
-                {
-                    //var texture = item.Textures.First().Value;
-                    //texture.BlendedOverlays = texture.BlendedOverlays != null ? 
-                    //    texture.BlendedOverlays.Append(overLay)
-                    //    : new[] { overLay };
-                    
-                    //if(item.Attributes != null)
-                    //{
-                    //    var textureAttr = item.Attributes["waterTightContainerProps"]["texture"];
-                    //    if(textureAttr.Exists)
-                    //    {
-                    //        textureAttr.Token["BlendedOverlays"] = JToken.FromObject(overlayArr);
-                    //    }
-                    //}
-                }
-            }
+            //TODO
         }
     }
 }

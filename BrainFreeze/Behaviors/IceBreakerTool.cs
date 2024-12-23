@@ -39,8 +39,8 @@ namespace BrainFreeze.Behaviors
                 return;
             }
             //TODO: maybe allow for this interaction on itemslot as well
-            //TODO: animation?
-            //TODO: custom sound effect for ice breaking
+            //TODO: maybe add a custom animation
+            //TODO: maybe add a custom sound effect for ice breaking
             if(blockSel.Block is BlockLiquidContainerBase liquidContainer)
             {
                 var entityContainer = world.BlockAccessor.GetBlockEntity<BlockEntityContainer>(blockSel.Position);

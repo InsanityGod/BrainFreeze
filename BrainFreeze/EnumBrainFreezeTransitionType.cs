@@ -9,7 +9,6 @@ namespace BrainFreeze
     public enum EnumBrainFreezeTransitionType
     {
         Freeze,
-        Thaw,
-        CoolDown //TODO
+        Thaw
     }
 }

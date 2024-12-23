@@ -1,6 +1,7 @@
 {
   //Error
   "liquid-frozen": "Liquid is frozen",
+  "consumable-frozen": "Too frozen to consume",
 
   //Transition
   "itemstack-freeze": "<font color=\"burlywood\">Freezable.</font>",
@@ -13,11 +14,22 @@
   "itemstack-thaw-duration-days": "Will <font color=\"burlywood\">thaw</font> in {p0:less than a day|# day|# days}",
   "itemstack-thaw-duration-hours": "Will <font color=\"burlywood\">thaw</font> in {p0:less than an hour|# hour|# hours}",
 
+  //Tabnames
+  "tabname-brainfreeze": "Brain Freeze",
+
   //Interaction
   "break-ice": "Break Ice",
   //Item
   "game:incontainer-item-waterportion-frozen": "Frozen Water",
   "game:item-waterportion-frozen": "Frozen Water",
   "item-icecubes": "Ice Cubes",
-  "itemdesc-icecubes": "Made by chiseling ice into small pieces"
+  "itemdesc-icecubes": "Made by chiseling ice into small pieces",
+
+  //TODO see if we can dynamically add frozen to these liquids instead of manually defining it
+  //Compat HydrateorDiedrate
+
+  "hydrateordiedrate:item-distilledwaterportion-frozen": "Frozen Distilled Water",
+  "hydrateordiedrate:incontainer-item-distilledwaterportion-frozen": "Frozen Distilled Water",
+  "hydrateordiedrate:item-rainwaterportion-frozen": "Frozen Rain Water",
+  "hydrateordiedrate:incontainer-item-rainwaterportion-frozen": "Frozen Rain Water"
 }
