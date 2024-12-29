@@ -19,12 +19,16 @@ namespace BrainFreeze
         public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumBrainFreezeTransitionType transType, float currentResult)
         {
             var pos = inSlot.Inventory?.Pos;
+
+            if(pos == null && inSlot.Inventory is InventoryBasePlayer playerInv)
+            {
+                pos = playerInv.Player.Entity.Pos.AsBlockPos;
+            }
+
             float multiplier = 0;
             if(pos != null)
             {
-                var fire = world.BlockAccessor.GetBlockEntity(pos) as IFirePit;
-
-                if(fire != null && fire.IsBurning)
+                if (world.BlockAccessor.GetBlockEntity(pos) is IFirePit fire && fire.IsBurning)
                 {
                     multiplier = -30;
                 }
@@ -33,7 +37,7 @@ namespace BrainFreeze
                     var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
 
                     var room = world.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
-                    if(room.ExitCount == 0)
+                    if (room.ExitCount == 0)
                     {
                         //TODO allow for setting a freezing point in attributes maybe
                         //TODO make custom compatibility with my currently none existent Better Immersion mod
@@ -41,8 +45,8 @@ namespace BrainFreeze
                     }
                     else
                     {
-                        multiplier = climate.Temperature >= 0 ? 
-                            (-1f / 20f) * climate.Temperature:
+                        multiplier = climate.Temperature >= 0 ?
+                            (-1f / 20f) * climate.Temperature :
                             (-1f / 10f) * climate.Temperature;
                     }
                 }

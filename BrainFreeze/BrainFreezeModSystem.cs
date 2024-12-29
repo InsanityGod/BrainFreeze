@@ -1,6 +1,7 @@
 ﻿using BrainFreeze.Behaviors;
 using BrainFreeze.Config;
 using BrainFreeze.HarmonyPatches;
+using BrainFreeze.HarmonyPatches.DynamicRegistry;
 using CustomTransitionLib;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
@@ -14,6 +15,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using Vintagestory.Server;
 
 namespace BrainFreeze
 {
@@ -59,12 +61,20 @@ namespace BrainFreeze
             registry.Register(new BrainFreezeTransitionHandler());
 
             api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
+            api.RegisterCollectibleBehaviorClass("brainfreeze:frozennameprefix", typeof(FrozenNamePrefix));
         }
 
-        public override void StartServerSide(ICoreServerAPI api)
-        {
-            //TODO ice freezing
-            base.StartServerSide(api);
+        public override void AssetsFinalize(ICoreAPI api)
+                {
+            if(api.Side == EnumAppSide.Client) return;
+            foreach(var item in api.World.Items)
+            {
+                if (item.Variant["brainfreeze"] != null)
+                {
+                    DynamicFrozenVariant.FinalizeFrozenCollectible(api, item);
+        }
+            }
+            base.AssetsFinalize(api);
         }
 
         public override void Dispose()
@@ -78,5 +88,12 @@ namespace BrainFreeze
 
             //TODO
         }
+
+
+
+        //TODO BlockLiquidContainerTopOpened.CanDrinkFrom (for auto added stuff)
+        //TODO slush
+        //TODO barrels?
+        //TODO make it so you can't get it out of bottles if it's ice :p
     }
 }

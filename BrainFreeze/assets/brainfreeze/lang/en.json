@@ -19,17 +19,19 @@
 
   //Interaction
   "break-ice": "Break Ice",
+
+  "frozen": "Frozen",
   //Item
-  "game:incontainer-item-waterportion-frozen": "Frozen Water",
-  "game:item-waterportion-frozen": "Frozen Water",
+  //"game:incontainer-item-waterportion-frozen": "Frozen Water",
+  //"game:item-waterportion-frozen": "Frozen Water",
   "item-icecubes": "Ice Cubes",
   "itemdesc-icecubes": "Made by chiseling ice into small pieces",
 
   //TODO see if we can dynamically add frozen to these liquids instead of manually defining it
   //Compat HydrateorDiedrate
 
-  "hydrateordiedrate:item-distilledwaterportion-frozen": "Frozen Distilled Water",
-  "hydrateordiedrate:incontainer-item-distilledwaterportion-frozen": "Frozen Distilled Water",
-  "hydrateordiedrate:item-rainwaterportion-frozen": "Frozen Rain Water",
-  "hydrateordiedrate:incontainer-item-rainwaterportion-frozen": "Frozen Rain Water"
+  //"hydrateordiedrate:item-distilledwaterportion-frozen": "Frozen Distilled Water",
+  //"hydrateordiedrate:incontainer-item-distilledwaterportion-frozen": "Frozen Distilled Water",
+  //"hydrateordiedrate:item-rainwaterportion-frozen": "Frozen Rain Water",
+  //"hydrateordiedrate:incontainer-item-rainwaterportion-frozen": "Frozen Rain Water"
 }

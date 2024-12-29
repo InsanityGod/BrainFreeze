@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +33,15 @@ namespace BrainFreeze
                 coreClientApi.TriggerIngameError(slot.Itemstack.Collectible, "consumable-frozen", Lang.Get("brainfreeze:consumable-frozen"));
             }
             return result;
+        }
+
+        public static string CodeWithoutFrozenPart(this CollectibleObject obj, string code = null)
+        {
+            var frozenPosition = obj.VariantStrict.IndexOfKey("brainfreeze");
+            var parts = (code ?? obj.Code.ToString()).Split('-').ToList();
+            parts.RemoveAt(1 + frozenPosition);
+
+            return string.Join("-", parts);
         }
     }
 }
