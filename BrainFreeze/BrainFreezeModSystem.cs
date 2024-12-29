@@ -65,7 +65,7 @@ namespace BrainFreeze
         }
 
         public override void AssetsFinalize(ICoreAPI api)
-                {
+        {
             if(api.Side == EnumAppSide.Client) return;
             foreach(var item in api.World.Items)
             {
@@ -81,12 +81,6 @@ namespace BrainFreeze
         {
             harmony?.UnpatchAll();
             base.Dispose();
-        }
-
-        public override void AssetsFinalize(ICoreAPI api)
-        {
-
-            //TODO
         }
 
 
