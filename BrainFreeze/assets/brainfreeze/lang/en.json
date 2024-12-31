@@ -25,7 +25,7 @@
   //"game:incontainer-item-waterportion-frozen": "Frozen Water",
   //"game:item-waterportion-frozen": "Frozen Water",
   "item-icecubes": "Ice Cubes",
-  "itemdesc-icecubes": "Made by chiseling ice into small pieces",
+  "icecubes-dynamicdesc": "Made by chiseling {0} into small pieces"
 
   //TODO see if we can dynamically add frozen to these liquids instead of manually defining it
   //Compat HydrateorDiedrate

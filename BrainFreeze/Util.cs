@@ -19,10 +19,10 @@ namespace BrainFreeze
             if(slot.Itemstack.Collectible is BlockLiquidContainerBase liquidContainerBase)
             {
                 var content = liquidContainerBase.GetContent(slot.Itemstack);
-                return content?.Collectible.Variant["frozen"] != null;
+                return content?.Collectible.Variant["brainfreeze"] != null;
             }
 
-            return slot.Itemstack.Collectible.Variant["frozen"] != null;
+            return slot.Itemstack.Collectible.Variant["brainfreeze"] != null;
         }
 
         public static bool IsFrozenWithWarning(ItemSlot slot)

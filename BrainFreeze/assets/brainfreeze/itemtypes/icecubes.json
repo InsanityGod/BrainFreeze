@@ -4,11 +4,12 @@
 	"shape": {
 		"base": "item/ice/icecubes"
 	},
+	"class": "brainfreeze:IceCube",
 	"creativeinventory": {
 		"general": [ "*" ],
 		"items": [ "*" ],
 		"brainfreeze": [ "*" ]
-	},
+	}, //TODO fix this so the default it shows is water cubes
 	"materialDensity": 900,
 	"guiTransform": {
 		"translation": {
@@ -70,18 +71,17 @@
 	"heldTpIdleAnimationByType": {
 		"*": "holdbothhands"
 	},
-	//TODO: solve issue where liquid ends up in slot that can't hold it
 	//TODO: maybe touch slush transition too
-	"transitionableProps": [
-		{
-			"type": "Thaw",
-			"TransitionHours": { "avg": 12 },
-			"freshHours": { "avg": 0 },
-			"transitionedStack": {
-				"type": "item",
-				"code": "game:waterportion"
-			},
-			"transitionRatio": 100
-		}
-	]
+	//"transitionableProps": [
+	//	{
+	//		"type": "Thaw",
+	//		"TransitionHours": { "avg": 12 },
+	//		"freshHours": { "avg": 0 },
+	//		"transitionedStack": {
+	//			"type": "item",
+	//			"code": "game:waterportion"
+	//		},
+	//		"transitionRatio": 100
+	//	}
+	//]
 }

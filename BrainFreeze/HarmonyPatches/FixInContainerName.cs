@@ -39,5 +39,4 @@ namespace BrainFreeze.HarmonyPatches
             dsc.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
         }
     }
-    //TODO transition info on block container when places?
 }

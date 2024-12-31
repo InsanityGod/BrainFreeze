@@ -2,6 +2,7 @@
 using BrainFreeze.Config;
 using BrainFreeze.HarmonyPatches;
 using BrainFreeze.HarmonyPatches.DynamicRegistry;
+using BrainFreeze.Items;
 using CustomTransitionLib;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
@@ -60,6 +61,8 @@ namespace BrainFreeze
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
             registry.Register(new BrainFreezeTransitionHandler());
 
+            api.RegisterItemClass("brainfreeze:IceCube", typeof(IceCube));
+
             api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
             api.RegisterCollectibleBehaviorClass("brainfreeze:frozennameprefix", typeof(FrozenNamePrefix));
         }
@@ -72,7 +75,7 @@ namespace BrainFreeze
                 if (item.Variant["brainfreeze"] != null)
                 {
                     DynamicFrozenVariant.FinalizeFrozenCollectible(api, item);
-        }
+                }
             }
             base.AssetsFinalize(api);
         }
@@ -82,8 +85,6 @@ namespace BrainFreeze
             harmony?.UnpatchAll();
             base.Dispose();
         }
-
-
 
         //TODO BlockLiquidContainerTopOpened.CanDrinkFrom (for auto added stuff)
         //TODO slush

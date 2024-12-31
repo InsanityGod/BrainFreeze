@@ -107,19 +107,26 @@ namespace BrainFreeze
 
                     result.Attributes["transitionstate"] = transitionState;
                 }
+                //TODO change order so transitions aren't copied over when there is no point in doing so
 
                 slot.Itemstack = result;
-                if (slot is not DummySlot && slot.CanTake() && slot.Inventory?.Pos != null)
+                var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
+                if (slot is not DummySlot && slot.CanTake() && pos != null)
                 {
-                    if (slot.Inventory.Api.World.BlockAccessor.GetBlock(slot.Inventory.Pos) is BlockLiquidContainerBase liquidContainer)
+                    if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
                     {
-                        liquidContainer.SetContent(slot.Inventory.Pos, result);
+                        liquidContainer.SetContent(pos, result);
                     }
                     else
                     {
-                        slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), slot.Inventory.Pos.X, slot.Inventory.Pos.Y, slot.Inventory.Pos.Z);
+                        slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
+                        result.StackSize = 0;
                     }
-                    result.StackSize = 0;
+                    if(slot.Inventory is InventoryBasePlayer)
+                    {
+                        //Edge case handling for ice cubes
+                        result.StackSize = 0;
+                    }
                 }
 
                 if(slot.Inventory != null)

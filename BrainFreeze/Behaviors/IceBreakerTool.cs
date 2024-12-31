@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrainFreeze.Items;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,7 +48,8 @@ namespace BrainFreeze.Behaviors
                 if(entityContainer == null) return;
 
                 var content = liquidContainer.GetContent(blockSel.Position);
-                if(content?.Collectible == null || content.Collectible.Code.Path != "waterportion-frozen") return;
+                if(content == null) return;
+                if (content?.Collectible?.Variant["brainfreeze"] == null) return;
                 handHandling = EnumHandHandling.PreventDefault;
                 handling = EnumHandling.PreventDefault;
 
@@ -61,7 +63,10 @@ namespace BrainFreeze.Behaviors
                 {
                     var stackSize = Math.Min(iceCubeCount, iceCubeItem.MaxStackSize);
 
-                    playerEntity.TryGiveItemStack(new ItemStack(iceCubeItem, stackSize));
+                    var stack = new ItemStack(iceCubeItem, stackSize);
+                    (iceCubeItem as IceCube).SetContent(stack, content);
+
+                    playerEntity.TryGiveItemStack(stack);
                     iceCubeCount -= stackSize;
                 }
                 
