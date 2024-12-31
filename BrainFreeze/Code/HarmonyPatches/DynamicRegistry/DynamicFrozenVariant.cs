@@ -1,13 +1,11 @@
-﻿using BrainFreeze.Behaviors;
+﻿using BrainFreeze.Code.Behaviors;
+using BrainFreeze.Code.Transition;
 using CustomTransitionLib;
 using HarmonyLib;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -15,27 +13,29 @@ using Vintagestory.API.Util;
 using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
-namespace BrainFreeze.HarmonyPatches.DynamicRegistry
+namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 {
     [HarmonyPatch(typeof(RegistryObjectType), "CreateBasetype")]
     public static class DynamicFrozenVariant
     {
         public const string LoggingKey = "BrainFreezeAutoRegistry";
-        public static HashSet<string> AllowedCodes { get; internal set; } = new() 
+
+        public static HashSet<string> AllowedCodes { get; internal set; } = new()
         {
             "waterportion",
             "distilledwaterportion",
             "rainwaterportion",
             "juiceportion"
         };
+
         //TODO should probably reset this list during cleanup in case other mods modify this but don't reset it
-        
+
         public static void Postfix(RegistryObjectType __instance)
         {
             if (!AllowedCodes.Contains(__instance.Code.Path.Split('-')[0])) return;
             __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
 
-            if(__instance.VariantGroups.Length == 1)
+            if (__instance.VariantGroups.Length == 1)
             {
                 var variant = __instance.VariantGroups[0];
                 __instance.VariantGroups = __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
@@ -49,7 +49,7 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
                     OnVariant = variant.OnVariant,
                 }).ToArray();
             }
-            else if(__instance.VariantGroups.Length > 1)
+            else if (__instance.VariantGroups.Length > 1)
             {
                 //TODO this is too complex for now so ignore it
                 return;
@@ -62,7 +62,7 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
                 Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
             };
             __instance.VariantGroups = __instance.VariantGroups.Append(newVariant);
-            if(__instance.SkipVariants != null)
+            if (__instance.SkipVariants != null)
             {
                 var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-frozen")).ToArray();
                 __instance.SkipVariants = __instance.SkipVariants.Append(skippedFrozen).ToArray();
@@ -79,7 +79,7 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
             frozenPrefix.OnLoaded(api);
 
             var nonFrozenItem = api.World.GetItem(new AssetLocation(frozenItem.CodeWithoutFrozenPart()));
-            if(nonFrozenItem == null)
+            if (nonFrozenItem == null)
             {
                 api.Logger.Warning("Could not find {0} for auto frozen variant registry (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
                 return;
@@ -119,15 +119,14 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
                 TransitionedStack = itemStack,
             }).ToArray();
 
-
             var inContainerProps = (JContainer)frozenItem.Attributes["waterTightContainerProps"].Token;
             inContainerProps["AllowSpill"] = false;
 
             //TODO improve this to be more fool proof
             var firstTexture = frozenItem.FirstTexture;
-            if(firstTexture != null)
+            if (firstTexture != null)
             {
-                if(firstTexture.Base.ToString() == "game:block/liquid/waterportion")
+                if (firstTexture.Base.ToString() == "game:block/liquid/waterportion")
                 {
                     firstTexture.Base = new AssetLocation("game:block/liquid/ice/lake1");
                     inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
@@ -147,10 +146,9 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
             }
             //collectibleObject.Textures
 
-
             //TODO
 
-            foreach(var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
+            foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
                 .Where(stack => stack.Attributes != null)
                 .SelectMany(stack => stack.Attributes["ucontents"].AsArray()))
             {
@@ -158,22 +156,22 @@ namespace BrainFreeze.HarmonyPatches.DynamicRegistry
                 content.Token["code"] = content["code"].AsString().Replace(nonFrozenItem.Code.Path, frozenItem.Code.Path);
             }
 
-            foreach(var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
+            foreach (var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
             {
                 //resolve fixed variant
                 item.Resolve(api.World, LoggingKey);
             }
 
             //Fix transitions
-            if(frozenItem.TransitionableProps != null)
+            if (frozenItem.TransitionableProps != null)
             {
-                foreach(var transition in frozenItem.TransitionableProps)
+                foreach (var transition in frozenItem.TransitionableProps)
                 {
                     var code = transition.TransitionedStack?.Code?.ToString();
-                    if(code != null)
+                    if (code != null)
                     {
                         var frozenAssetLocation = new AssetLocation($"{code}-frozen");
-                        if(api.World.GetItem(frozenAssetLocation) != null)
+                        if (api.World.GetItem(frozenAssetLocation) != null)
                         {
                             transition.TransitionedStack.Code = frozenAssetLocation;
                             transition.TransitionedStack.Resolve(api.World, LoggingKey);

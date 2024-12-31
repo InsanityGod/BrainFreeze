@@ -1,13 +1,10 @@
 ﻿using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Common;
 
-namespace BrainFreeze.HarmonyPatches.Consumption
+namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions.Consumption
 {
     [HarmonyPatch(typeof(CollectibleObject), "tryEatBegin")]
     public static class PreventBeginEatIfFrozen
@@ -21,7 +18,7 @@ namespace BrainFreeze.HarmonyPatches.Consumption
             {
                 var code = codes[i];
 
-                if(code.opcode == OpCodes.Brfalse_S && codes[i - 1].operand == method)
+                if (code.opcode == OpCodes.Brfalse_S && codes[i - 1].operand == method)
                 {
                     codes.InsertRange(i + 1, new CodeInstruction[]
                     {

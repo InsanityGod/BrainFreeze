@@ -1,16 +1,11 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace BrainFreeze.HarmonyPatches
+namespace BrainFreeze.Code.HarmonyPatches
 {
     [HarmonyPatch(typeof(BlockLiquidContainerBase), nameof(BlockLiquidContainerBase.GetPlacedBlockInfo))]
     public static class FixInContainerName1
@@ -18,7 +13,7 @@ namespace BrainFreeze.HarmonyPatches
         public static void Postfix(BlockLiquidContainerBase __instance, BlockPos pos, ref string __result)
         {
             var content = __instance.GetContent(pos);
-            if(content == null) return;
+            if (content == null) return;
             var code = content.Collectible.Code;
             var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
             var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
@@ -32,7 +27,7 @@ namespace BrainFreeze.HarmonyPatches
         public static void Postfix(BlockLiquidContainerBase __instance, ItemSlot inSlot, StringBuilder dsc)
         {
             var content = __instance.GetContent(inSlot.Itemstack);
-            if(content == null) return;
+            if (content == null) return;
             var code = content.Collectible.Code;
             var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
             var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";

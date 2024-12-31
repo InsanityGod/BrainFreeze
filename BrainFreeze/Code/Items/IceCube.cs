@@ -1,24 +1,22 @@
-﻿using BrainFreeze.Rendering;
+﻿using BrainFreeze.Code.Rendering;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
 
-namespace BrainFreeze.Items
+namespace BrainFreeze.Code.Items
 {
     public class IceCube : Item
     {
         private int iceCubeId = 0;
+
         public override void OnLoaded(ICoreAPI api)
         {
             base.OnLoaded(api);
@@ -28,9 +26,9 @@ namespace BrainFreeze.Items
         public ItemStack GetContent(ItemStack iceCube, IWorldAccessor world = null)
         {
             var content = iceCube.Attributes?.GetItemstack("IceCubeIngredient");
-            if(content != null)
+            if (content != null)
             {
-                if(content.Collectible == null && world != null) content.ResolveBlockOrItem(world);
+                if (content.Collectible == null && world != null) content.ResolveBlockOrItem(world);
                 if (content?.Collectible != null)
                 {
                     var containableProps = content.Collectible.Attributes["waterTightContainerProps"].AsObject<WaterTightContainableProps>();
@@ -52,33 +50,34 @@ namespace BrainFreeze.Items
         {
             var ingredient = GetContent(itemstack, world);
 
-            if(ingredient == null ) return null;
+            if (ingredient == null) return null;
             //TODO add coldness effect
 
-			WaterTightContainableProps props = BlockLiquidContainerBase.GetContainableProps(ingredient);
-			if (props?.NutritionPropsPerLitre != null)
-			{
-				FoodNutritionProperties nutriProps = props.NutritionPropsPerLitre.Clone();
-				float litre = 1; //TODO maybe have a magic number class or config for this
-				nutriProps.Health *= litre;
-				nutriProps.Satiety *= litre;
-				return nutriProps;
-			}
-			return base.GetNutritionProperties(world, itemstack, forEntity);
+            WaterTightContainableProps props = BlockLiquidContainerBase.GetContainableProps(ingredient);
+            if (props?.NutritionPropsPerLitre != null)
+            {
+                FoodNutritionProperties nutriProps = props.NutritionPropsPerLitre.Clone();
+                float litre = 1; //TODO maybe have a magic number class or config for this
+                nutriProps.Health *= litre;
+                nutriProps.Satiety *= litre;
+                return nutriProps;
+            }
+            return base.GetNutritionProperties(world, itemstack, forEntity);
         }
 
         #region DisplayText
+
         public override string GetHeldItemName(ItemStack itemStack)
         {
             var baseName = base.GetHeldItemName(itemStack);
 
             var ingredient = GetContent(itemStack);
-            if(ingredient?.Collectible == null) return baseName;
+            if (ingredient?.Collectible == null) return baseName;
 
             var ingredientName = ingredient.Collectible.GetHeldItemName(ingredient);
             var comp = ingredientName.Split(' ');
 
-            if(comp.Length > 1) return $"{baseName} ({comp[1]})";
+            if (comp.Length > 1) return $"{baseName} ({comp[1]})";
             return $"{ingredientName} {baseName}";
         }
 
@@ -93,13 +92,12 @@ namespace BrainFreeze.Items
 
         #endregion DisplayText
 
-
         #region TransitionStates
 
         public override bool RequiresTransitionableTicking(IWorldAccessor world, ItemStack itemstack)
         {
             var content = GetContent(itemstack, world);
-            if(content ==  null) return false;
+            if (content == null) return false;
             //TODO look into switching transition result for frozen variants (so distilled ice cubes don't turn into water ice cubes lol)
             //TODO Check name of normal ice cubes
             //TODO fix creative inventory :p
@@ -114,21 +112,21 @@ namespace BrainFreeze.Items
 
         public override TransitionableProperties[] GetTransitionableProperties(IWorldAccessor world, ItemStack itemstack, Entity forEntity)
         {
-            if(itemstack.Id != iceCubeId)
+            if (itemstack.Id != iceCubeId)
             {
                 //In case it's called with current collectible instead of contained item
                 return itemstack.Collectible.GetTransitionableProperties(world, itemstack, forEntity);
             }
 
             var content = GetContent(itemstack, world);
-            if(content ==  null) return Array.Empty<TransitionableProperties>();
+            if (content == null) return Array.Empty<TransitionableProperties>();
 
             return content.Collectible.GetTransitionableProperties(world, content, forEntity);
         }
 
         public override void SetTransitionState(ItemStack stack, EnumTransitionType type, float transitionedHours)
         {
-            if(stack.Id != iceCubeId)
+            if (stack.Id != iceCubeId)
             {
                 //In case it's called with current collectible instead of contained item
                 stack.Collectible.SetTransitionState(stack, type, transitionedHours);
@@ -136,7 +134,7 @@ namespace BrainFreeze.Items
             }
 
             var content = GetContent(stack);
-            if(content?.Collectible ==  null) return; //TODO we may have an issue here but lets just hope this doesn't somehow happen
+            if (content?.Collectible == null) return; //TODO we may have an issue here but lets just hope this doesn't somehow happen
 
             content.Collectible.SetTransitionState(stack, type, transitionedHours);
         }
@@ -144,14 +142,14 @@ namespace BrainFreeze.Items
         public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumTransitionType transType)
         {
             var itemstack = inSlot.Itemstack;
-            if(itemstack.Id != iceCubeId)
+            if (itemstack.Id != iceCubeId)
             {
                 //In case it's called with current collectible instead of contained item
                 return itemstack.Collectible.GetTransitionRateMul(world, inSlot, transType);
             }
 
             var content = GetContent(itemstack, world);
-            if(content ==  null) return 1f;
+            if (content == null) return 1f;
 
             return content.Collectible.GetTransitionRateMul(world, inSlot, transType);
         }
@@ -159,7 +157,7 @@ namespace BrainFreeze.Items
         public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props)
         {
             var itemstack = slot.Itemstack;
-            if(itemstack.Id != iceCubeId)
+            if (itemstack.Id != iceCubeId)
             {
                 //In case it's called with current collectible instead of contained item
                 return itemstack.Collectible.OnTransitionNow(slot, props);
@@ -170,19 +168,19 @@ namespace BrainFreeze.Items
         }
 
         public override TransitionState[] UpdateAndGetTransitionStates(IWorldAccessor world, ItemSlot inslot)
-		{
+        {
             var content = GetContent(inslot.Itemstack, world);
-			if (inslot is ItemSlotCreative || content == null)
-			{
-				return base.UpdateAndGetTransitionStates(world, inslot);
-			}
+            if (inslot is ItemSlotCreative || content == null)
+            {
+                return base.UpdateAndGetTransitionStates(world, inslot);
+            }
 
             var currentStack = inslot.Itemstack;
 
-            inslot.Itemstack  = content;
+            inslot.Itemstack = content;
             var result = base.UpdateAndGetTransitionStates(world, inslot);
 
-            if(inslot.Itemstack == null || inslot.Itemstack.StackSize == 0 || inslot.Itemstack.Collectible.Variant["brainfreeze"] == null)
+            if (inslot.Itemstack == null || inslot.Itemstack.StackSize == 0 || inslot.Itemstack.Collectible.Variant["brainfreeze"] == null)
             {
                 //transition has deleted our content :P
                 return result;
@@ -193,7 +191,7 @@ namespace BrainFreeze.Items
             inslot.Itemstack.Attributes.SetItemstack("IceCubeIngredient", content);
 
             return result;
-		}
+        }
 
         #endregion TransitionStates
 
@@ -202,15 +200,15 @@ namespace BrainFreeze.Items
         private Dictionary<int, MultiTextureMeshRef> Meshrefs => ObjectCacheUtil.GetOrCreate(api, "icecubemeshrefs", () => new Dictionary<int, MultiTextureMeshRef>());
 
         public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo)
-		{
+        {
             var ingredient = GetContent(itemstack, capi.World);
             if (ingredient != null && !Meshrefs.TryGetValue(ingredient.Id, out renderinfo.ModelRef))
             {
                 MultiTextureMeshRef modelref = capi.Render.UploadMultiTextureMesh(GenMesh(ingredient.Item, capi.ItemTextureAtlas));
-                renderinfo.ModelRef = (Meshrefs[ingredient.Id] = modelref);
+                renderinfo.ModelRef = Meshrefs[ingredient.Id] = modelref;
             }
             base.OnBeforeRender(capi, itemstack, target, ref renderinfo);
-		}
+        }
 
         public MeshData GenMesh(Item ingredient, ITextureAtlasAPI targetAtlas)
         {
@@ -221,7 +219,5 @@ namespace BrainFreeze.Items
         }
 
         #endregion CustomRendering
-
-        
     }
 }

@@ -1,16 +1,11 @@
-﻿using CustomTransitionLib;
-using CustomTransitionLib.interfaces;
+﻿using CustomTransitionLib.interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace BrainFreeze
+namespace BrainFreeze.Code.Transition
 {
     public class BrainFreezeTransitionHandler : ICustomTransitionHandler<EnumBrainFreezeTransitionType>
     {
@@ -20,13 +15,13 @@ namespace BrainFreeze
         {
             var pos = inSlot.Inventory?.Pos;
 
-            if(pos == null && inSlot.Inventory is InventoryBasePlayer playerInv)
+            if (pos == null && inSlot.Inventory is InventoryBasePlayer playerInv)
             {
                 pos = playerInv.Player.Entity.Pos.AsBlockPos;
             }
 
             float multiplier = 0;
-            if(pos != null)
+            if (pos != null)
             {
                 if (world.BlockAccessor.GetBlockEntity(pos) is IFirePit fire && fire.IsBurning)
                 {
@@ -46,13 +41,13 @@ namespace BrainFreeze
                     else
                     {
                         multiplier = climate.Temperature >= 0 ?
-                            (-1f / 20f) * climate.Temperature :
-                            (-1f / 10f) * climate.Temperature;
+                            -1f / 20f * climate.Temperature :
+                            -1f / 10f * climate.Temperature;
                     }
                 }
             }
-            
-            if(transType == EnumBrainFreezeTransitionType.Thaw)
+
+            if (transType == EnumBrainFreezeTransitionType.Thaw)
             {
                 multiplier *= -1;
             }
@@ -63,21 +58,21 @@ namespace BrainFreeze
         public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EnumBrainFreezeTransitionType transType, ref ItemStack result)
         {
             //TODO: I wish there was a better way to do this...
-            if(result.Collectible?.MatterState == EnumMatterState.Liquid)
+            if (result.Collectible?.MatterState == EnumMatterState.Liquid)
             {
                 var wasLocked = slot.Inventory?.TakeLocked;
-                if(slot.Inventory != null)
+                if (slot.Inventory != null)
                 {
                     slot.Inventory.TakeLocked = false;
                 }
 
                 //Some code to preserve transition states //TODO see if we can do this in a cleaner way
-                if(result.Collectible.TransitionableProps != null && slot.Inventory.Api != null)
+                if (result.Collectible.TransitionableProps != null && slot.Inventory.Api != null)
                 {
                     var transitionState = ((ITreeAttribute)slot.Itemstack.Attributes["transitionstate"]).Clone();
-				    var freshHours = (transitionState["freshHours"] as FloatArrayAttribute).value;
-				    var transitionHours = (transitionState["transitionHours"] as FloatArrayAttribute).value;
-				    var transitionedHours = (transitionState["transitionedHours"] as FloatArrayAttribute).value;
+                    var freshHours = (transitionState["freshHours"] as FloatArrayAttribute).value;
+                    var transitionHours = (transitionState["transitionHours"] as FloatArrayAttribute).value;
+                    var transitionedHours = (transitionState["transitionedHours"] as FloatArrayAttribute).value;
 
                     var len = result.Collectible.TransitionableProps.Length;
                     float[] newFreshHours = new float[len];
@@ -85,11 +80,11 @@ namespace BrainFreeze
                     float[] newTransitionedHours = new float[len];
 
                     var api = slot.Inventory.Api;
-                    for(int i = 0; i < len; i++)
+                    for (int i = 0; i < len; i++)
                     {
                         var newProp = result.Collectible.TransitionableProps[i];
                         var existingIndex = collectible.TransitionableProps.IndexOf(existingProp => existingProp.Type == newProp.Type);
-                        if(existingIndex == -1)
+                        if (existingIndex == -1)
                         {
                             newFreshHours[i] = newProp.FreshHours.nextFloat(1, api.World.Rand);
                             newTransitionHours[i] = newProp.TransitionHours.nextFloat(1, api.World.Rand);
@@ -122,14 +117,14 @@ namespace BrainFreeze
                         slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
                         result.StackSize = 0;
                     }
-                    if(slot.Inventory is InventoryBasePlayer)
+                    if (slot.Inventory is InventoryBasePlayer)
                     {
                         //Edge case handling for ice cubes
                         result.StackSize = 0;
                     }
                 }
 
-                if(slot.Inventory != null)
+                if (slot.Inventory != null)
                 {
                     slot.Inventory.TakeLocked = wasLocked.Value;
                 }

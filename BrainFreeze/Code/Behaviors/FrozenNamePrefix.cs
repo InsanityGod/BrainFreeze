@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 
-namespace BrainFreeze.Behaviors
+namespace BrainFreeze.Code.Behaviors
 {
     public class FrozenNamePrefix : CollectibleBehavior
     {
-
         public FrozenNamePrefix(CollectibleObject collObj) : base(collObj)
         {
         }
@@ -18,7 +13,7 @@ namespace BrainFreeze.Behaviors
         public override void GetHeldItemName(StringBuilder sb, ItemStack itemStack)
         {
             var code = $"{itemStack.Collectible.Code.Domain}:item-{itemStack.Collectible.Code.Path}";
-            if(sb.ToString() == code)
+            if (sb.ToString() == code)
             {
                 var itemCode = itemStack.Collectible.Code;
                 sb.Clear();

@@ -1,22 +1,17 @@
-﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 
-namespace BrainFreeze
+namespace BrainFreeze.Code
 {
     public static class Util
     {
         public static bool IsFrozen(ItemSlot slot)
         {
-            if(slot.Itemstack?.Collectible == null) return false;
-            if(slot.Itemstack.Collectible is BlockLiquidContainerBase liquidContainerBase)
+            if (slot.Itemstack?.Collectible == null) return false;
+            if (slot.Itemstack.Collectible is BlockLiquidContainerBase liquidContainerBase)
             {
                 var content = liquidContainerBase.GetContent(slot.Itemstack);
                 return content?.Collectible.Variant["brainfreeze"] != null;

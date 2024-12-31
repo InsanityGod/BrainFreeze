@@ -1,38 +1,22 @@
-﻿using BrainFreeze.Behaviors;
+﻿using BrainFreeze.Code.Behaviors;
+using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
+using BrainFreeze.Code.Items;
+using BrainFreeze.Code.Transition;
 using BrainFreeze.Config;
-using BrainFreeze.HarmonyPatches;
-using BrainFreeze.HarmonyPatches.DynamicRegistry;
-using BrainFreeze.Items;
 using CustomTransitionLib;
 using HarmonyLib;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Linq;
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
-using Vintagestory.API.Util;
-using Vintagestory.GameContent;
-using Vintagestory.Server;
 
-namespace BrainFreeze
+namespace BrainFreeze.Code
 {
     public class BrainFreezeModSystem : ModSystem
     {
-
-
         private const string ConfigName = "BrainFreezeConfig.json";
 
         public static ModConfig Config { get; private set; }
 
         private Harmony harmony;
-
-        public BrainFreezeModSystem()
-        {
-        }
 
         public override void StartPre(ICoreAPI api) => LoadConfig(api);
 
@@ -56,10 +40,11 @@ namespace BrainFreeze
             if (!Harmony.HasAnyPatches(Mod.Info.ModID))
             {
                 harmony = new Harmony(Mod.Info.ModID);
-                harmony.PatchAll();
+                harmony.PatchAllUncategorized();
             }
+
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
-            registry.Register(new BrainFreezeTransitionHandler());
+            registry.Register<BrainFreezeTransitionHandler, EnumBrainFreezeTransitionType>();
 
             api.RegisterItemClass("brainfreeze:IceCube", typeof(IceCube));
 
@@ -69,8 +54,9 @@ namespace BrainFreeze
 
         public override void AssetsFinalize(ICoreAPI api)
         {
-            if(api.Side == EnumAppSide.Client) return;
-            foreach(var item in api.World.Items)
+            if (api.Side == EnumAppSide.Client) return;
+
+            foreach (var item in api.World.Items)
             {
                 if (item.Variant["brainfreeze"] != null)
                 {
