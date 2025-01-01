@@ -11,6 +11,10 @@
       <HintPath>..\..\CustomTransitionLib\bin\Debug\Mods\mod\CustomTransitionLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HydrateOrDiedrate">
+      <HintPath>..\..\Dep\hydrateordiedrate_1.5.4\HydrateOrDiedrate.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="VintagestoryAPI">
       <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
       <Private>false</Private>

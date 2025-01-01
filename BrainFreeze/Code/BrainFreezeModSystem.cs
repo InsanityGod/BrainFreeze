@@ -41,6 +41,11 @@ namespace BrainFreeze.Code
             {
                 harmony = new Harmony(Mod.Info.ModID);
                 harmony.PatchAllUncategorized();
+
+                if (api.ModLoader.IsModEnabled("hydrateordiedrate"))
+                {
+                    harmony.PatchCategory("hydrateordiedrate");
+                }
             }
 
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
@@ -54,7 +59,7 @@ namespace BrainFreeze.Code
 
         public override void AssetsFinalize(ICoreAPI api)
         {
-            if (api.Side == EnumAppSide.Client) return;
+            if(api.Side == EnumAppSide.Client) return;
 
             foreach (var item in api.World.Items)
             {
@@ -63,6 +68,9 @@ namespace BrainFreeze.Code
                     DynamicFrozenVariant.FinalizeFrozenCollectible(api, item);
                 }
             }
+
+            DynamicFrozenVariant.FinalizeIceCube(api);
+
             base.AssetsFinalize(api);
         }
 

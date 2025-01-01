@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.ServerMods;
@@ -179,6 +180,44 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                     }
                 }
             }
+        }
+
+        public static void FinalizeIceCube(ICoreAPI api)
+        {
+            var iceCube = api.World.GetItem(new AssetLocation("brainfreeze:icecubes"));
+            
+            var creativeStacks = new List<CreativeTabAndStackList>();
+            foreach(var item in api.World.Items.Where(item => item.Variant != null && item.Variant["brainfreeze"] != null))
+            {
+                var ingredient = new ItemStack(item);
+                var tree = new TreeAttribute();
+                tree.SetItemstack("IceCubeIngredient", ingredient);
+
+                var attr = new JsonObject(new JObject());
+                attr.Token["CreativeIngredientId"] = JToken.FromObject(item.Id);
+                
+                var stack = new CreativeTabAndStackList
+                {
+                    Tabs = new string[] { "general", "items" },
+                    Stacks = new JsonItemStack[]
+                    {
+                        new()
+                        {
+                            Code = iceCube.Code,
+                            Type = EnumItemClass.Item,
+                            Attributes = attr
+                        }
+                    }
+                };
+
+                foreach(var toResolve in stack.Stacks)
+                {
+                    toResolve.Resolve(api.World, LoggingKey);
+                }
+
+                creativeStacks.Add(stack);
+            }
+            iceCube.CreativeInventoryStacks = creativeStacks.ToArray();
         }
     }
 }

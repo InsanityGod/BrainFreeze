@@ -7,6 +7,7 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
 {
+    //TODO cleanup harmony patches
     [HarmonyPatch(typeof(BlockLiquidContainerBase), nameof(BlockLiquidContainerBase.TryPutLiquid), argumentTypes: new Type[] { typeof(ItemStack), typeof(ItemStack), typeof(float) })]
     public static class PreventTryFillFromBlockForFrozenLiquids
     {

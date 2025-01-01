@@ -26,6 +26,19 @@ namespace BrainFreeze.Code.Items
         public ItemStack GetContent(ItemStack iceCube, IWorldAccessor world = null)
         {
             var content = iceCube.Attributes?.GetItemstack("IceCubeIngredient");
+            if(content == null)
+            {
+                var creativeId = iceCube.Attributes?.TryGetInt("CreativeIngredientId");
+                if(creativeId != null && world != null)
+                {
+                    var item = world.GetItem(creativeId.Value);
+                    if(item != null)
+                    {
+                        content = new ItemStack(item);
+                        SetContent(iceCube, content);
+                    }
+                }
+            }
             if (content != null)
             {
                 if (content.Collectible == null && world != null) content.ResolveBlockOrItem(world);
@@ -46,6 +59,8 @@ namespace BrainFreeze.Code.Items
             iceCube.Attributes.SetItemstack("IceCubeIngredient", input);
         }
 
+        #region NutritionAndHydration
+
         public override FoodNutritionProperties GetNutritionProperties(IWorldAccessor world, ItemStack itemstack, Entity forEntity)
         {
             var ingredient = GetContent(itemstack, world);
@@ -64,6 +79,8 @@ namespace BrainFreeze.Code.Items
             }
             return base.GetNutritionProperties(world, itemstack, forEntity);
         }
+
+        #endregion
 
         #region DisplayText
 

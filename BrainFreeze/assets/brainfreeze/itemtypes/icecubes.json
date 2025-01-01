@@ -5,11 +5,6 @@
     "base": "item/ice/icecubes"
   },
   "class": "brainfreeze:IceCube",
-  "creativeinventory": {
-    "general": [ "*" ],
-    "items": [ "*" ],
-    "brainfreeze": [ "*" ]
-  }, //TODO fix this so the default it shows is water cubes
   "materialDensity": 900,
   "guiTransform": {
     "translation": {
@@ -70,18 +65,6 @@
   },
   "heldTpIdleAnimationByType": {
     "*": "holdbothhands"
-  },
+  }
   //TODO: maybe touch slush transition too
-  //"transitionableProps": [
-  //	{
-  //		"type": "Thaw",
-  //		"TransitionHours": { "avg": 12 },
-  //		"freshHours": { "avg": 0 },
-  //		"transitionedStack": {
-  //			"type": "item",
-  //			"code": "game:waterportion"
-  //		},
-  //		"transitionRatio": 100
-  //	}
-  //]
 }
