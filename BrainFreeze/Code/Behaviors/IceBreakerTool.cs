@@ -39,8 +39,9 @@ namespace BrainFreeze.Code.Behaviors
             //TODO: maybe add a custom sound effect for ice breaking
             if (blockSel.Block is BlockLiquidContainerBase liquidContainer)
             {
+                
                 var entityContainer = world.BlockAccessor.GetBlockEntity<BlockEntityContainer>(blockSel.Position);
-                if (entityContainer == null) return;
+                if (entityContainer == null || entityContainer.GetType().Name.ToLower().Contains("barrelrack") || (entityContainer is BlockEntityBarrel barrel && barrel.Sealed)) return;
 
                 var content = liquidContainer.GetContent(blockSel.Position);
                 if (content == null) return;

@@ -54,7 +54,7 @@ namespace BrainFreeze.Code.Transition
 
             return multiplier;
         }
-
+        //TODO rainwater collection :p
         public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EnumBrainFreezeTransitionType transType, ref ItemStack result)
         {
             //TODO: I wish there was a better way to do this...
@@ -103,8 +103,39 @@ namespace BrainFreeze.Code.Transition
                     result.Attributes["transitionstate"] = transitionState;
                 }
                 //TODO change order so transitions aren't copied over when there is no point in doing so
+                HandleLiquidTransitionResult(slot, ref result);
 
+                //TODO remove commented code
+                //slot.Itemstack = result;
+                //var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
+                //if (slot is not DummySlot && slot.CanTake() && pos != null)
+                //{
+                //    if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
+                //    {
+                //        liquidContainer.SetContent(pos, result);
+                //    }
+                //    else
+                //    {
+                //        slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
+                //        result.StackSize = 0;
+                //    }
+                //    if (slot.Inventory is InventoryBasePlayer)
+                //    {
+                //        //Edge case handling for ice cubes
+                //        result.StackSize = 0;
+                //    }
+                //}
+
+                if (slot.Inventory != null)
+                {
+                    slot.Inventory.TakeLocked = wasLocked.Value;
+                }
+            }
+        }
+        public static void HandleLiquidTransitionResult(ItemSlot slot, ref ItemStack result)
+        {
                 slot.Itemstack = result;
+                if(result.Collectible.MatterState != EnumMatterState.Liquid) return;
                 var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
                 if (slot is not DummySlot && slot.CanTake() && pos != null)
                 {
@@ -123,12 +154,6 @@ namespace BrainFreeze.Code.Transition
                         result.StackSize = 0;
                     }
                 }
-
-                if (slot.Inventory != null)
-                {
-                    slot.Inventory.TakeLocked = wasLocked.Value;
-                }
-            }
         }
     }
 }

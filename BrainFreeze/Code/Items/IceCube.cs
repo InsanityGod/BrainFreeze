@@ -1,6 +1,8 @@
 ﻿using BrainFreeze.Code.Rendering;
+using BrainFreeze.Code.Transition;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -94,7 +96,7 @@ namespace BrainFreeze.Code.Items
             var ingredientName = ingredient.Collectible.GetHeldItemName(ingredient);
             var comp = ingredientName.Split(' ');
 
-            if (comp.Length > 1) return $"{baseName} ({comp[1]})";
+            if (comp.Length > 1) return $"{baseName} ({string.Join(' ', comp.Skip(1))})";
             return $"{ingredientName} {baseName}";
         }
 
@@ -103,6 +105,17 @@ namespace BrainFreeze.Code.Items
             base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
 
             var ingredient = GetContent(inSlot.Itemstack, world);
+            if(ingredient.Collectible.Code != null)
+            {
+                var code = $"brainfreeze:icecube-{ingredient.Collectible.Code.Path}";
+                var result = Lang.GetMatching(code);
+                if(result != code)
+                {
+                    dsc.AppendLine(result);
+                }
+            }
+            dsc.AppendLine();
+
             var name = ingredient?.Collectible?.GetHeldItemName(ingredient)?.ToLower();
             dsc.AppendLine(Lang.Get("brainfreeze:icecubes-dynamicdesc", name ?? "frozen unknown liquid"));
         }
@@ -124,6 +137,7 @@ namespace BrainFreeze.Code.Items
 
         public override void TryMergeStacks(ItemStackMergeOperation op)
         {
+            //TODO remove or optimize transition state merging
             base.TryMergeStacks(op);
         }
 
@@ -153,7 +167,8 @@ namespace BrainFreeze.Code.Items
             var content = GetContent(stack);
             if (content?.Collectible == null) return; //TODO we may have an issue here but lets just hope this doesn't somehow happen
 
-            content.Collectible.SetTransitionState(stack, type, transitionedHours);
+            content.Collectible.SetTransitionState(content, type, transitionedHours);
+            SetContent(stack, content);
         }
 
         public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumTransitionType transType)
@@ -174,14 +189,21 @@ namespace BrainFreeze.Code.Items
         public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props)
         {
             var itemstack = slot.Itemstack;
+            ItemStack result;
             if (itemstack.Id != iceCubeId)
             {
                 //In case it's called with current collectible instead of contained item
-                return itemstack.Collectible.OnTransitionNow(slot, props);
+                result = itemstack.Collectible.OnTransitionNow(slot, props);
+            }
+            else
+            {
+                var content = GetContent(slot.Itemstack);
+                result = content.Collectible.OnTransitionNow(slot, props);
             }
 
-            var content = GetContent(slot.Itemstack);
-            return content.Collectible.OnTransitionNow(slot, props);
+            BrainFreezeTransitionHandler.HandleLiquidTransitionResult(slot, ref result);
+
+            return result;
         }
 
         public override TransitionState[] UpdateAndGetTransitionStates(IWorldAccessor world, ItemSlot inslot)
@@ -233,6 +255,15 @@ namespace BrainFreeze.Code.Items
             var capi = api as ICoreClientAPI;
             capi.Tesselator.TesselateItem(this, out var mesh, new IceCubeTexPositionSource(manager, ingredient));
             return mesh;
+        }
+
+        public override void OnUnloaded(ICoreAPI api)
+        {
+            foreach(var mesh in Meshrefs.Values)
+            {
+                mesh.Dispose();
+            }
+            base.OnUnloaded(api);
         }
 
         #endregion CustomRendering

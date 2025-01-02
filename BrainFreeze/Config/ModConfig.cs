@@ -2,7 +2,9 @@
 {
     public class ModConfig
     {
-        //TODO use this for auto registry of other frozen stuff :3
+        /// <summary>
+        /// Limits? what are those?
+        /// </summary>
         public bool SuperBrainFreeze { get; set; } = false;
     }
 }

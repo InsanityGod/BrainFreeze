@@ -32,9 +32,18 @@ namespace BrainFreeze.Code
 
         public static string CodeWithoutFrozenPart(this CollectibleObject obj, string code = null)
         {
-            var frozenPosition = obj.VariantStrict.IndexOfKey("brainfreeze");
+            var i = 0;
+            for (var index = 0; index < obj.VariantStrict.Count; index++)
+            {
+                if(obj.VariantStrict.GetKeyAtIndex(index) == "brainfreeze") break;
+                if (!string.IsNullOrEmpty(obj.VariantStrict.GetValueAtIndex(index))) i++; //this is to deal with some weird empty variants added by other mods
+            }
+            
+
+            //var frozenPosition = obj.VariantStrict.IndexOfKey("brainfreeze");
             var parts = (code ?? obj.Code.ToString()).Split('-').ToList();
-            parts.RemoveAt(1 + frozenPosition);
+            //TODO?: parts.RemoveAt(1 + frozenPosition);
+            parts.RemoveAt(i + 1);
 
             return string.Join("-", parts);
         }

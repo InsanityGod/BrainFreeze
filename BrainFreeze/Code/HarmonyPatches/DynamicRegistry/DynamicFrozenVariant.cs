@@ -8,9 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.Client.NoObf;
 using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
@@ -21,19 +23,13 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
     {
         public const string LoggingKey = "BrainFreezeAutoRegistry";
 
-        public static HashSet<string> AllowedCodes { get; internal set; } = new()
-        {
-            "waterportion",
-            "distilledwaterportion",
-            "rainwaterportion",
-            "juiceportion"
-        };
+        public static HashSet<string> AllowedCodes { get; internal set; }
 
         //TODO should probably reset this list during cleanup in case other mods modify this but don't reset it
 
         public static void Postfix(RegistryObjectType __instance)
         {
-            if (!AllowedCodes.Contains(__instance.Code.Path.Split('-')[0])) return;
+            if (BrainFreezeModSystem.Config.SuperBrainFreeze || !AllowedCodes.Contains(__instance.Code.Path.Split('-')[0])) return;
             __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
 
             if (__instance.VariantGroups.Length == 1)
@@ -121,7 +117,13 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
             }).ToArray();
 
             var inContainerProps = (JContainer)frozenItem.Attributes["waterTightContainerProps"].Token;
-            inContainerProps["AllowSpill"] = false;
+            inContainerProps ??= (JContainer)nonFrozenItem.Attributes["waterTightContainerProps"].Token?.DeepClone();
+
+            if(inContainerProps != null)
+            {
+                inContainerProps["AllowSpill"] = false;
+            }
+            else api.Logger.Warning("waterTightContainerProps where not defined for {0}, is this really a liquid?? (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
 
             //TODO improve this to be more fool proof
             var firstTexture = frozenItem.FirstTexture;
@@ -138,7 +140,6 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                     {
                         new()
                         {
-                            //Base = new AssetLocation("brainfreeze:block/liquid/ice/overlay")
                             Base = new AssetLocation("game:block/liquid/ice/lake1")
                         }
                     };
@@ -149,24 +150,27 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             //TODO
 
-            foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
-                .Where(stack => stack.Attributes != null)
-                .SelectMany(stack => stack.Attributes["ucontents"].AsArray()))
+            if(frozenItem.CreativeInventoryStacks != null)
             {
-                //Fix code reference to frozen variant
-                content.Token["code"] = content["code"].AsString().Replace(nonFrozenItem.Code.Path, frozenItem.Code.Path);
-            }
+                foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
+                    .Where(stack => stack.Attributes != null)
+                    .SelectMany(stack => stack.Attributes["ucontents"].AsArray()))
+                {
+                    //Fix code reference to frozen variant
+                    content.Token["code"] = content["code"].AsString().Replace(nonFrozenItem.Code.Path, frozenItem.Code.Path);
+                }
 
-            foreach (var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
-            {
-                //resolve fixed variant
-                item.Resolve(api.World, LoggingKey);
+                foreach (var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
+                {
+                    //resolve fixed variant
+                    item.Resolve(api.World, LoggingKey);
+                }
             }
 
             //Fix transitions
             if (frozenItem.TransitionableProps != null)
             {
-                foreach (var transition in frozenItem.TransitionableProps)
+                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != EnumBrainFreezeTransitionType.Thaw.ConvertToFake()))
                 {
                     var code = transition.TransitionedStack?.Code?.ToString();
                     if (code != null)

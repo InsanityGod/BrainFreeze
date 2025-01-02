@@ -82,31 +82,6 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
 
             return true;
         }
-
-        [HarmonyPatch(nameof(BlockLiquidContainerBase.GetPlacedBlockInfo))]
-        [HarmonyPostfix]
-        public static void GetPlacedBlockInfoPostfix(BlockLiquidContainerBase __instance, BlockPos pos, ref string __result)
-        {
-            var content = __instance.GetContent(pos);
-            if (content == null) return;
-            var code = content.Collectible.Code;
-            var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-            var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
-            __result = __result.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
-        }
-
-        [HarmonyPatch(nameof(BlockLiquidContainerBase.GetContentInfo))]
-        [HarmonyPostfix]
-        public static void GetContentInfoPostfix(BlockLiquidContainerBase __instance, ItemSlot inSlot, StringBuilder dsc)
-        {
-            var content = __instance.GetContent(inSlot.Itemstack);
-            if (content == null) return;
-            var code = content.Collectible.Code;
-            var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-            var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
-            dsc.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
-        }
-
     }
 
 }
