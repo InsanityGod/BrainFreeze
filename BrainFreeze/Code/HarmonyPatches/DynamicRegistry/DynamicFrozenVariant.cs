@@ -174,7 +174,8 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             if(inContainerProps != null)
             {
-                if (inContainerProps["texture"]["base"].ToString() == "game:block/liquid/waterportion")
+                var inContainerTextureStr = inContainerProps["texture"]["base"].ToString();
+                if (inContainerTextureStr == "block/liquid/waterportion" || inContainerTextureStr == "game:block/liquid/waterportion")
                 {
                     inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
                 }
