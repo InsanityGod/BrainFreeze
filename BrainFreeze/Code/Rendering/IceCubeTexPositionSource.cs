@@ -6,7 +6,6 @@ using Vintagestory.Client.NoObf;
 
 namespace BrainFreeze.Code.Rendering
 {
-    //TODO see if there is some neater solution
     public class IceCubeTexPositionSource : ITexPositionSource
     {
         private readonly ItemTextureAtlasManager manager;

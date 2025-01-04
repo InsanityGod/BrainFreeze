@@ -2,6 +2,7 @@
 using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
@@ -11,48 +12,46 @@ namespace BrainFreeze.Code.Transition
     {
         public string ModId => "brainfreeze";
 
+        public static float GetFreezingPoint(ItemSlot slot)
+        {
+            var attr = slot.Itemstack?.Collectible.Attributes;
+            return attr != null ? attr["freezePoint"].AsFloat() : 0;
+        }
+
+        //inSlot is just here to make hooking into this with harmony patches is easier (in case you want to make special inventory slots with heating properties)
+        public static float GetTemperatureAtPos(IWorldAccessor world, ItemSlot inSlot, BlockPos pos)
+        {
+            var entityAtPos = world.BlockAccessor.GetBlockEntity(pos);
+            if(entityAtPos is IFirePit firePit && firePit.IsBurning) return 160;
+
+            var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
+            if(climate.Temperature < 10)
+            {
+                var room = world.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
+            
+                if(room.ExitCount == 0) return 10; //TODO compat for a mod I intend to make in the future
+            }
+            
+            return climate.Temperature;
+        }
+
         public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumBrainFreezeTransitionType transType, float currentResult)
         {
-            var pos = inSlot.Inventory?.Pos;
-
-            if (pos == null && inSlot.Inventory is InventoryBasePlayer playerInv)
-            {
-                pos = playerInv.Player.Entity.Pos.AsBlockPos;
-            }
-
             float multiplier = 0;
-            if (pos != null)
+
+            var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
+            if(pos == null) return multiplier;
+
+            var freezingPoint = GetFreezingPoint(inSlot);
+            var temperature = GetTemperatureAtPos(world, inSlot, pos);
+            var diffMult = Math.Abs(temperature - freezingPoint) / 5;
+
+            return transType switch
             {
-                if (world.BlockAccessor.GetBlockEntity(pos) is IFirePit fire && fire.IsBurning)
-                {
-                    multiplier = -30;
-                }
-                else
-                {
-                    var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
-
-                    var room = world.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
-                    if (room.ExitCount == 0)
-                    {
-                        //TODO allow for setting a freezing point in attributes maybe
-                        //TODO make custom compatibility with my currently none existent Better Immersion mod
-                        multiplier = -1;
-                    }
-                    else
-                    {
-                        multiplier = climate.Temperature >= 0 ?
-                            -1f / 20f * climate.Temperature :
-                            -1f / 10f * climate.Temperature;
-                    }
-                }
-            }
-
-            if (transType == EnumBrainFreezeTransitionType.Thaw)
-            {
-                multiplier *= -1;
-            }
-
-            return multiplier;
+                EnumBrainFreezeTransitionType.Freeze => temperature <= freezingPoint ? diffMult : -diffMult,
+                EnumBrainFreezeTransitionType.Thaw => temperature >= freezingPoint ? diffMult : -diffMult,
+                _ => multiplier,
+            };
         }
         //TODO rainwater collection :p
         public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EnumBrainFreezeTransitionType transType, ref ItemStack result)
@@ -102,34 +101,19 @@ namespace BrainFreeze.Code.Transition
 
                     result.Attributes["transitionstate"] = transitionState;
                 }
-                //TODO change order so transitions aren't copied over when there is no point in doing so
-                HandleLiquidTransitionResult(slot, ref result);
 
-                //TODO remove commented code
-                //slot.Itemstack = result;
-                //var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
-                //if (slot is not DummySlot && slot.CanTake() && pos != null)
-                //{
-                //    if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
-                //    {
-                //        liquidContainer.SetContent(pos, result);
-                //    }
-                //    else
-                //    {
-                //        slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
-                //        result.StackSize = 0;
-                //    }
-                //    if (slot.Inventory is InventoryBasePlayer)
-                //    {
-                //        //Edge case handling for ice cubes
-                //        result.StackSize = 0;
-                //    }
-                //}
+                HandleLiquidTransitionResult(slot, ref result);
 
                 if (slot.Inventory != null)
                 {
                     slot.Inventory.TakeLocked = wasLocked.Value;
                 }
+            }
+
+            if(slot.Inventory?.Pos != null)
+            {
+                //HACK: workaround for GroundStoreAble not updating correctly for some reason
+                slot.Inventory.Api?.World.BlockAccessor.GetBlockEntity(slot.Inventory.Pos)?.MarkDirty();
             }
         }
         public static void HandleLiquidTransitionResult(ItemSlot slot, ref ItemStack result)

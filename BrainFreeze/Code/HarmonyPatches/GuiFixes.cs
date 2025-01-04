@@ -1,10 +1,8 @@
-﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
+﻿using Cairo;
+using HarmonyLib;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -16,7 +14,7 @@ namespace BrainFreeze.Code.HarmonyPatches
     [HarmonyPatch]
     public static class GuiFixes
     {
-        //TODO see if we can dynamically create language keys?
+        //TODO see if we can dynamically create language keys instead -_-
 
         [HarmonyPatch(typeof(GuiDialogBarrel), "getContentsText")]
         [HarmonyPostfix]
@@ -58,6 +56,18 @@ namespace BrainFreeze.Code.HarmonyPatches
             var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
             var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
             dsc.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
+        }
+
+        [HarmonyPatch(typeof(BlockLiquidContainerTopOpened), nameof(BlockLiquidContainerTopOpened.GetContainedInfo))]
+        [HarmonyPostfix]
+        public static void GetContainedInfoPostfix(BlockLiquidContainerTopOpened __instance, ItemSlot inSlot, ref string __result)
+        {
+            ItemStack content = __instance.GetContent(inSlot.Itemstack);
+            if (content?.Collectible?.Variant == null || content.Collectible.Variant["brainfreeze"] == null) return;
+            var code = content.Collectible.Code;
+            var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
+            var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
+            __result = __result.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
         }
     }
 }

@@ -42,7 +42,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
                     itemStack = liquidContainer.GetContent(itemStack);
                 }
 
-                if (itemStack?.Collectible?.Variant["frozen"] != null)
+                if (itemStack?.Collectible?.Variant["brainfreeze"] != null)
                 {
                     var typeName = __instance.GetType().Name;
                     if (__instance is ItemSlotWatertight || typeName == "ItemSlotMixingBowl" || typeName == "ItemSlotPotInput")
@@ -73,7 +73,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
 
             if (itemStack1?.StackSize == itemStack2?.StackSize) return true; //So we can actually stack full buckets of frozen liquid
 
-            if (itemStack1?.Item?.Variant["frozen"] != null || itemStack2?.Item?.Variant["frozen"] != null)
+            if (itemStack1?.Item?.Variant["brainfreeze"] != null || itemStack2?.Item?.Variant["brainfreeze"] != null)
             {
                 if (Traverse.Create(__instance).Field<ICoreAPI>("api").Value is ICoreClientAPI clientApi)
                 {

@@ -6,34 +6,25 @@
   //Transition
   "itemstack-freeze": "<font color=\"burlywood\">Freezable.</font>",
   "itemstack-freeze-progression": "<font color=\"burlywood\">Freezable.</font> {0}% frozen",
-  "itemstack-freeze-duration-years": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a year|# year|# years}",
-  "itemstack-freeze-duration-days": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a day|# day|# days}",
-  "itemstack-freeze-duration-hours": "Will <font color=\"burlywood\">freeze</font> in {p0:less than an hour|# hour|# hours}",
+  "itemstack-freeze-duration-years": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a year|# year|# years} at current temperature",
+  "itemstack-freeze-duration-days": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a day|# day|# days} at current temperature",
+  "itemstack-freeze-duration-hours": "Will <font color=\"burlywood\">freeze</font> in {p0:less than an hour|# hour|# hours} at current temperature",
   "itemstack-thaw": "<font color=\"burlywood\">Thawable.</font>",
   "itemstack-thaw-progression": "<font color=\"burlywood\">Thawable.</font> {0}% thawed",
-  "itemstack-thaw-duration-days": "Will <font color=\"burlywood\">thaw</font> in {p0:less than a day|# day|# days}",
-  "itemstack-thaw-duration-hours": "Will <font color=\"burlywood\">thaw</font> in {p0:less than an hour|# hour|# hours}",
+  "itemstack-thaw-duration-days": "Will <font color=\"burlywood\">thaw</font> in {p0:less than a day|# day|# days} at current temperature",
+  "itemstack-thaw-duration-hours": "Will <font color=\"burlywood\">thaw</font> in {p0:less than an hour|# hour|# hours} at current temperature",
 
   //Tabnames
-  "tabname-brainfreeze": "Brain Freeze",
+  "game:tabname-brainfreeze": "Brain Freeze",
 
   //Interaction
   "break-ice": "Break Ice",
 
   "frozen": "Frozen",
   //Item
-  //"game:incontainer-item-waterportion-frozen": "Frozen Water",
-  //"game:item-waterportion-frozen": "Frozen Water",
   "item-icecubes": "Ice Cubes",
   "icecubes-dynamicdesc": "Made by chiseling {0} into small pieces",
 
   //Ice Cube
   "icecube-dye-*": "How colorful!"
-  //TODO see if we can dynamically add frozen to these liquids instead of manually defining it
-  //Compat HydrateorDiedrate
-
-  //"hydrateordiedrate:item-distilledwaterportion-frozen": "Frozen Distilled Water",
-  //"hydrateordiedrate:incontainer-item-distilledwaterportion-frozen": "Frozen Distilled Water",
-  //"hydrateordiedrate:item-rainwaterportion-frozen": "Frozen Rain Water",
-  //"hydrateordiedrate:incontainer-item-rainwaterportion-frozen": "Frozen Rain Water"
 }

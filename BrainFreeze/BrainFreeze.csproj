@@ -12,7 +12,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="HydrateOrDiedrate">
-      <HintPath>..\..\Dep\hydrateordiedrate_1.5.4\HydrateOrDiedrate.dll</HintPath>
+      <HintPath>..\..\Dep\hydrateordiedrate_1.6.3\HydrateOrDiedrate.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VintagestoryAPI">

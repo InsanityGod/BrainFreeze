@@ -19,7 +19,13 @@ namespace BrainFreeze.Code.Behaviors
                 sb.Clear();
                 sb.Append(Lang.Get("brainfreeze:frozen"));
                 sb.Append(' ');
-                sb.Append(Lang.Get($"{itemCode.Domain}:item-{itemStack.Collectible.CodeWithoutFrozenPart(itemCode.Path)}"));
+                var withoutFrozenCode = $"{itemCode.Domain}:item-{itemStack.Collectible.CodeWithoutFrozenPart(itemCode.Path)}";
+                var withoutFrozenStr = Lang.Get(withoutFrozenCode);
+                if(withoutFrozenCode == withoutFrozenStr)
+                {
+                    withoutFrozenStr = Lang.Get($"{itemCode.Domain}:incontainer-item-{itemStack.Collectible.CodeWithoutFrozenPart(itemCode.Path)}");
+                }
+                sb.Append(withoutFrozenStr);
             }
         }
     }

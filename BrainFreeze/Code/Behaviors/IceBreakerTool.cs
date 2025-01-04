@@ -34,18 +34,22 @@ namespace BrainFreeze.Code.Behaviors
                 }
                 return;
             }
+
             //TODO: maybe allow for this interaction on itemslot as well
             //TODO: maybe add a custom animation
             //TODO: maybe add a custom sound effect for ice breaking
             if (blockSel.Block is BlockLiquidContainerBase liquidContainer)
             {
-                
                 var entityContainer = world.BlockAccessor.GetBlockEntity<BlockEntityContainer>(blockSel.Position);
-                if (entityContainer == null || entityContainer.GetType().Name.ToLower().Contains("barrelrack") || (entityContainer is BlockEntityBarrel barrel && barrel.Sealed)) return;
+                if(entityContainer is BlockEntityBarrel barrel)
+                {
+                    if(barrel.Sealed) return;
+                }
+                else if(!liquidContainer.IsTopOpened) return;
 
                 var content = liquidContainer.GetContent(blockSel.Position);
                 if (content == null) return;
-                if (content?.Collectible?.Variant["brainfreeze"] == null) return;
+                if (content.Collectible?.Variant["brainfreeze"] == null) return;
                 handHandling = EnumHandHandling.PreventDefault;
                 handling = EnumHandling.PreventDefault;
 
@@ -88,7 +92,8 @@ namespace BrainFreeze.Code.Behaviors
             {
                 new() {
                     ActionLangCode = "brainfreeze:break-ice",
-                    MouseButton = EnumMouseButton.Right
+                    MouseButton = EnumMouseButton.Right,
+                    HotKeyCode = "shift"
                 }
             };
         }

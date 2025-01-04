@@ -18,18 +18,18 @@ using Vintagestory.ServerMods.NoObf;
 
 namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 {
-    [HarmonyPatch(typeof(RegistryObjectType), "CreateBasetype")]
+    //Just pretend you didn't see this class
+    [HarmonyPatch(typeof(RegistryObjectType))]
     public static class DynamicFrozenVariant
     {
         public const string LoggingKey = "BrainFreezeAutoRegistry";
 
-        public static HashSet<string> AllowedCodes { get; internal set; }
-
-        //TODO should probably reset this list during cleanup in case other mods modify this but don't reset it
-
-        public static void Postfix(RegistryObjectType __instance)
+        [HarmonyPatch("CreateBasetype")]
+        [HarmonyPostfix]
+        public static void CreateBasetypePostfix(RegistryObjectType __instance)
         {
-            if (BrainFreezeModSystem.Config.SuperBrainFreeze || !AllowedCodes.Contains(__instance.Code.Path.Split('-')[0])) return;
+            if(!BrainFreezeModSystem.Config.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint) && !BrainFreezeModSystem.Config.SuperBrainFreeze) return;
+
             __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
 
             if (__instance.VariantGroups.Length == 1)
@@ -38,7 +38,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 __instance.VariantGroups = __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
                 {
                     Code = variant.Code,
-                    Combine = EnumCombination.Add, //TODO
+                    Combine = EnumCombination.Add,
                     LoadFromProperties = variant.LoadFromProperties,
                     States = variant.States,
                     IsValue = variant.IsValue,
@@ -55,20 +55,30 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
             var newVariant = new RegistryObjectVariantGroup
             {
                 Code = "brainfreeze",
-                States = new string[] { "frozen" },
+                States = new string[] { "brainfreeze" },
                 Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
             };
             __instance.VariantGroups = __instance.VariantGroups.Append(newVariant);
             if (__instance.SkipVariants != null)
             {
-                var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-frozen")).ToArray();
+                var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-brainfreeze")).ToArray();
                 __instance.SkipVariants = __instance.SkipVariants.Append(skippedFrozen).ToArray();
+            }
+        }
+
+        [HarmonyPatch("solveByType")]
+        [HarmonyPrefix]
+        public static void SolveByTypePrefix(ref string codePath)
+        {
+            if (codePath.EndsWith("-brainfreeze"))
+            {
+                codePath = codePath[..^12]; //12 is the length of "-brainfreeze"
             }
         }
 
         public static void FinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
         {
-            frozenItem.MatterState = EnumMatterState.Solid;
+            //frozenItem.MatterState = EnumMatterState.Solid; //Technically it should be solid but this causes issues for item moving
             frozenItem.CollectibleBehaviors ??= Array.Empty<CollectibleBehavior>();
 
             var frozenPrefix = new FrozenNamePrefix(frozenItem);
@@ -81,6 +91,21 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 api.Logger.Warning("Could not find {0} for auto frozen variant registry (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
                 return;
             }
+
+            frozenItem.Attributes ??= new JsonObject(new JObject());
+            nonFrozenItem.Attributes ??= new JsonObject(new JObject());
+
+            BrainFreezeModSystem.Config.AutoRegFrozenVariants.TryGetValue(nonFrozenItem.Code.Path.Split('-')[0], out float freezePoint);
+
+            frozenItem.Attributes.Token["freezePoint"] = freezePoint;
+            nonFrozenItem.Attributes.Token["freezePoint"] = freezePoint;
+
+            //Copy hydration values
+            if(nonFrozenItem.Attributes["hydration"].Exists)
+            {
+                frozenItem.Attributes.Token["hydration"] = nonFrozenItem.Attributes["hydration"].Token.DeepClone();
+            }
+
             nonFrozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
             frozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
 
@@ -125,30 +150,39 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
             }
             else api.Logger.Warning("waterTightContainerProps where not defined for {0}, is this really a liquid?? (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
 
-            //TODO improve this to be more fool proof
+            var blendedOverlays = new BlendedOverlayTexture[]
+            {
+                new()
+                {
+                    Base = new AssetLocation("game:block/liquid/ice/lake1")
+                }
+            };
+
             var firstTexture = frozenItem.FirstTexture;
             if (firstTexture != null)
             {
+
                 if (firstTexture.Base.ToString() == "game:block/liquid/waterportion")
                 {
                     firstTexture.Base = new AssetLocation("game:block/liquid/ice/lake1");
+                }
+                else
+                {
+                    firstTexture.BlendedOverlays = blendedOverlays;
+                }
+            }
+
+            if(inContainerProps != null)
+            {
+                if (inContainerProps["texture"]["base"].ToString() == "game:block/liquid/waterportion")
+                {
                     inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
                 }
                 else
                 {
-                    firstTexture.BlendedOverlays = new BlendedOverlayTexture[]
-                    {
-                        new()
-                        {
-                            Base = new AssetLocation("game:block/liquid/ice/lake1")
-                        }
-                    };
-                    inContainerProps["texture"] = JToken.FromObject(firstTexture);
+                    inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
                 }
             }
-            //collectibleObject.Textures
-
-            //TODO
 
             if(frozenItem.CreativeInventoryStacks != null)
             {
@@ -165,6 +199,11 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                     //resolve fixed variant
                     item.Resolve(api.World, LoggingKey);
                 }
+
+                foreach(var creativeStack in frozenItem.CreativeInventoryStacks)
+                {
+                    creativeStack.Tabs = creativeStack.Tabs.Append("brainfreeze");
+                }
             }
 
             //Fix transitions
@@ -175,7 +214,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                     var code = transition.TransitionedStack?.Code?.ToString();
                     if (code != null)
                     {
-                        var frozenAssetLocation = new AssetLocation($"{code}-frozen");
+                        var frozenAssetLocation = new AssetLocation($"{code}-brainfreeze");
                         if (api.World.GetItem(frozenAssetLocation) != null)
                         {
                             transition.TransitionedStack.Code = frozenAssetLocation;
@@ -202,7 +241,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 
                 var stack = new CreativeTabAndStackList
                 {
-                    Tabs = new string[] { "general", "items" },
+                    Tabs = new string[] { "general", "items", "brainfreeze" },
                     Stacks = new JsonItemStack[]
                     {
                         new()

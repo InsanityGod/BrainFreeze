@@ -39,10 +39,7 @@ namespace BrainFreeze.Code
                 if (!string.IsNullOrEmpty(obj.VariantStrict.GetValueAtIndex(index))) i++; //this is to deal with some weird empty variants added by other mods
             }
             
-
-            //var frozenPosition = obj.VariantStrict.IndexOfKey("brainfreeze");
             var parts = (code ?? obj.Code.ToString()).Split('-').ToList();
-            //TODO?: parts.RemoveAt(1 + frozenPosition);
             parts.RemoveAt(i + 1);
 
             return string.Join("-", parts);

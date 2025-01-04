@@ -9,6 +9,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
@@ -57,7 +58,7 @@ namespace BrainFreeze.Code.Items
         public void SetContent(ItemStack iceCube, ItemStack ingredient)
         {
             iceCube.Attributes ??= new TreeAttribute();
-            var input = ingredient.Clone(); //TODO is cloning really necesary here?
+            var input = ingredient.Clone();
             iceCube.Attributes.SetItemstack("IceCubeIngredient", input);
         }
 
@@ -74,7 +75,7 @@ namespace BrainFreeze.Code.Items
             if (props?.NutritionPropsPerLitre != null)
             {
                 FoodNutritionProperties nutriProps = props.NutritionPropsPerLitre.Clone();
-                float litre = 1; //TODO maybe have a magic number class or config for this
+                float litre = 1;
                 nutriProps.Health *= litre;
                 nutriProps.Satiety *= litre;
                 return nutriProps;
@@ -89,7 +90,6 @@ namespace BrainFreeze.Code.Items
         public override string GetHeldItemName(ItemStack itemStack)
         {
             var baseName = base.GetHeldItemName(itemStack);
-
             var ingredient = GetContent(itemStack);
             if (ingredient?.Collectible == null) return baseName;
 
@@ -128,17 +128,9 @@ namespace BrainFreeze.Code.Items
         {
             var content = GetContent(itemstack, world);
             if (content == null) return false;
-            //TODO look into switching transition result for frozen variants (so distilled ice cubes don't turn into water ice cubes lol)
-            //TODO Check name of normal ice cubes
-            //TODO fix creative inventory :p
+
             //TODO soup cubes? when?
             return content.Collectible.RequiresTransitionableTicking(world, content);
-        }
-
-        public override void TryMergeStacks(ItemStackMergeOperation op)
-        {
-            //TODO remove or optimize transition state merging
-            base.TryMergeStacks(op);
         }
 
         public override TransitionableProperties[] GetTransitionableProperties(IWorldAccessor world, ItemStack itemstack, Entity forEntity)
@@ -165,7 +157,7 @@ namespace BrainFreeze.Code.Items
             }
 
             var content = GetContent(stack);
-            if (content?.Collectible == null) return; //TODO we may have an issue here but lets just hope this doesn't somehow happen
+            if (content?.Collectible == null) return; //We may have an issue here but lets just hope this doesn't somehow happen
 
             content.Collectible.SetTransitionState(content, type, transitionedHours);
             SetContent(stack, content);
@@ -183,7 +175,12 @@ namespace BrainFreeze.Code.Items
             var content = GetContent(itemstack, world);
             if (content == null) return 1f;
 
-            return content.Collectible.GetTransitionRateMul(world, inSlot, transType);
+            var cache = inSlot.Itemstack;
+            inSlot.Itemstack = content;
+            var result = content.Collectible.GetTransitionRateMul(world, inSlot, transType);
+            inSlot.Itemstack = cache;
+
+            return result;
         }
 
         public override ItemStack OnTransitionNow(ItemSlot slot, TransitionableProperties props)
@@ -224,7 +221,6 @@ namespace BrainFreeze.Code.Items
                 //transition has deleted our content :P
                 return result;
             }
-            //TODO check transition
 
             inslot.Itemstack = currentStack;
             inslot.Itemstack.Attributes.SetItemstack("IceCubeIngredient", content);
