@@ -69,7 +69,6 @@ namespace BrainFreeze.Code.Items
             var ingredient = GetContent(itemstack, world);
 
             if (ingredient == null) return null;
-            //TODO add coldness effect
 
             WaterTightContainableProps props = BlockLiquidContainerBase.GetContainableProps(ingredient);
             if (props?.NutritionPropsPerLitre != null)

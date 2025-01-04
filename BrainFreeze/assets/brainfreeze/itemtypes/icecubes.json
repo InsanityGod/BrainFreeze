@@ -5,6 +5,9 @@
     "base": "item/ice/icecubes"
   },
   "class": "brainfreeze:IceCube",
+  "attributes": {
+    "ConsumptionTemperaturePenalty": -2
+  },
   "materialDensity": 900,
   "guiTransform": {
     "translation": {
