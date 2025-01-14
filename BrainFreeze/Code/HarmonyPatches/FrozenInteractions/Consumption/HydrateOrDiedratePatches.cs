@@ -21,9 +21,9 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions.Consumption
         [HarmonyPrefix]
         public static bool GetHydrationPrefix(ItemStack itemStack, ref float __result)
         {
-            if (itemStack.Collectible is IceCube iceCube)
+            if (itemStack.Collectible is Ice ice)
             {
-                var content = iceCube.GetContent(itemStack);
+                var content = ice.GetContent(itemStack);
                 if(content != null)
                 {
                     __result = HydrationManager.GetHydration(content);

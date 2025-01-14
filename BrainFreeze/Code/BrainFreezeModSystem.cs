@@ -6,8 +6,11 @@ using BrainFreeze.Config;
 using CustomTransitionLib;
 using HarmonyLib;
 using System;
+using System.Linq;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace BrainFreeze.Code
 {
@@ -37,7 +40,7 @@ namespace BrainFreeze.Code
         {
             try
             {
-                Config = api.LoadModConfig<ModConfig>(ConfigName) ?? new();
+                Config ??= api.LoadModConfig<ModConfig>(ConfigName) ?? new();
                 api.StoreModConfig(Config, ConfigName);
             }
             catch (Exception ex)
@@ -64,7 +67,8 @@ namespace BrainFreeze.Code
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
             registry.Register<BrainFreezeTransitionHandler, EnumBrainFreezeTransitionType>();
 
-            api.RegisterItemClass("brainfreeze:IceCube", typeof(IceCube));
+            //api.RegisterItemClass("brainfreeze:IceCube", typeof(IceCube));
+            api.RegisterItemClass("brainfreeze:Ice", typeof(Ice));
 
             api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
             api.RegisterCollectibleBehaviorClass("brainfreeze:frozennameprefix", typeof(FrozenNamePrefix));
@@ -89,6 +93,7 @@ namespace BrainFreeze.Code
         public override void Dispose()
         {
             harmony?.UnpatchAll();
+            Config = null;
             base.Dispose();
         }
     }

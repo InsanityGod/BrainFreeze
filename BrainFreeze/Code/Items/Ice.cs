@@ -3,6 +3,7 @@ using BrainFreeze.Code.Transition;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -16,56 +17,71 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.Items
 {
-    public class IceCube : Item
+    public class Ice : Item
     {
-        private int iceCubeId = 0;
-
+        public float LitersPerItem { get; set; } = 1;
+        
+        private string cacheKey;
+        
         public override void OnLoaded(ICoreAPI api)
         {
             base.OnLoaded(api);
-            iceCubeId = api.World.GetItem(new AssetLocation("brainfreeze:icecubes")).Id;
+            cacheKey = $"{Code}-meshref";
+            if(Attributes?.Exists == true)
+            {
+                LitersPerItem = Attributes[nameof(LitersPerItem)].AsFloat(LitersPerItem);
+            }
         }
 
-        public ItemStack GetContent(ItemStack iceCube, IWorldAccessor world = null)
+        public int? GetContentId(ItemStack ice)
         {
-            var content = iceCube.Attributes?.GetItemstack("IceCubeIngredient");
+            var content = ice.Attributes?.GetItemstack("IceIngredient");
+
+            return content?.Id;
+        }
+
+        public ItemStack GetContent(ItemStack ice, IWorldAccessor world = null)
+        {
+            var content = ice.Attributes?.GetItemstack("IceIngredient");
             if(content == null)
             {
-                var creativeId = iceCube.Attributes?.TryGetInt("CreativeIngredientId");
+                var creativeId = ice.Attributes?.TryGetInt("CreativeIngredientId");
                 if(creativeId != null && world != null)
                 {
                     var item = world.GetItem(creativeId.Value);
                     if(item != null)
                     {
                         content = new ItemStack(item);
-                        SetContent(iceCube, content);
+                        SetContent(ice, content);
                     }
                 }
             }
+
             if (content != null)
             {
                 if (content.Collectible == null && world != null) content.ResolveBlockOrItem(world);
                 if (content?.Collectible != null)
                 {
                     var containableProps = content.Collectible.Attributes["waterTightContainerProps"].AsObject<WaterTightContainableProps>();
-
-                    content.StackSize = (int)(containableProps?.ItemsPerLitre ?? 100) * iceCube.StackSize;
+                    var itemsPerLiter = containableProps?.ItemsPerLitre ?? 100;
+                    content.StackSize = (int)(LitersPerItem * itemsPerLiter);
                 }
             }
             return content;
         }
 
-        public void SetContent(ItemStack iceCube, ItemStack ingredient)
+        public void SetContent(ItemStack ice, ItemStack ingredient)
         {
-            iceCube.Attributes ??= new TreeAttribute();
+            ice.Attributes ??= new TreeAttribute();
             var input = ingredient.Clone();
-            iceCube.Attributes.SetItemstack("IceCubeIngredient", input);
+            ice.Attributes.SetItemstack("IceIngredient", input);
         }
 
         #region NutritionAndHydration
 
         public override FoodNutritionProperties GetNutritionProperties(IWorldAccessor world, ItemStack itemstack, Entity forEntity)
         {
+            if(itemstack == null) return null;
             var ingredient = GetContent(itemstack, world);
 
             if (ingredient == null) return null;
@@ -95,6 +111,7 @@ namespace BrainFreeze.Code.Items
             var ingredientName = ingredient.Collectible.GetHeldItemName(ingredient);
             var comp = ingredientName.Split(' ');
 
+            //TODO look at name generation
             if (comp.Length > 1) return $"{baseName} ({string.Join(' ', comp.Skip(1))})";
             return $"{ingredientName} {baseName}";
         }
@@ -106,7 +123,7 @@ namespace BrainFreeze.Code.Items
             var ingredient = GetContent(inSlot.Itemstack, world);
             if(ingredient.Collectible.Code != null)
             {
-                var code = $"brainfreeze:icecube-{ingredient.Collectible.Code.Path}";
+                var code = $"{Code.Domain}:{Code.Path}-{ingredient.Collectible.Code.Path}";
                 var result = Lang.GetMatching(code);
                 if(result != code)
                 {
@@ -116,7 +133,9 @@ namespace BrainFreeze.Code.Items
             dsc.AppendLine();
 
             var name = ingredient?.Collectible?.GetHeldItemName(ingredient)?.ToLower();
-            dsc.AppendLine(Lang.Get("brainfreeze:icecubes-dynamicdesc", name ?? "frozen unknown liquid"));
+            var langCode = $"{Code.Domain}:{Code.Path}-dynamicdesc";
+            var str = Lang.Get(langCode, name ?? "frozen unknown liquid");
+            if (str != langCode) dsc.AppendLine(str);
         }
 
         #endregion DisplayText
@@ -134,7 +153,7 @@ namespace BrainFreeze.Code.Items
 
         public override TransitionableProperties[] GetTransitionableProperties(IWorldAccessor world, ItemStack itemstack, Entity forEntity)
         {
-            if (itemstack.Id != iceCubeId)
+            if (itemstack.Id != Id)
             {
                 //In case it's called with current collectible instead of contained item
                 return itemstack.Collectible.GetTransitionableProperties(world, itemstack, forEntity);
@@ -148,8 +167,9 @@ namespace BrainFreeze.Code.Items
 
         public override void SetTransitionState(ItemStack stack, EnumTransitionType type, float transitionedHours)
         {
-            if (stack.Id != iceCubeId)
+            if (stack.Id != Id)
             {
+                //TODO check
                 //In case it's called with current collectible instead of contained item
                 stack.Collectible.SetTransitionState(stack, type, transitionedHours);
                 return;
@@ -165,7 +185,7 @@ namespace BrainFreeze.Code.Items
         public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumTransitionType transType)
         {
             var itemstack = inSlot.Itemstack;
-            if (itemstack.Id != iceCubeId)
+            if (itemstack.Id != Id)
             {
                 //In case it's called with current collectible instead of contained item
                 return itemstack.Collectible.GetTransitionRateMul(world, inSlot, transType);
@@ -186,8 +206,9 @@ namespace BrainFreeze.Code.Items
         {
             var itemstack = slot.Itemstack;
             ItemStack result;
-            if (itemstack.Id != iceCubeId)
+            if (itemstack.Id != Id)
             {
+                //TODO check
                 //In case it's called with current collectible instead of contained item
                 result = itemstack.Collectible.OnTransitionNow(slot, props);
             }
@@ -204,12 +225,10 @@ namespace BrainFreeze.Code.Items
 
         public override TransitionState[] UpdateAndGetTransitionStates(IWorldAccessor world, ItemSlot inslot)
         {
-            var content = GetContent(inslot.Itemstack, world);
-            if (inslot is ItemSlotCreative || content == null)
-            {
-                return base.UpdateAndGetTransitionStates(world, inslot);
-            }
 
+            if (inslot is ItemSlotCreative) return base.UpdateAndGetTransitionStates(world, inslot);
+            var content = GetContent(inslot.Itemstack, world);
+            if (content == null) return base.UpdateAndGetTransitionStates(world, inslot);
             var currentStack = inslot.Itemstack;
 
             inslot.Itemstack = content;
@@ -222,7 +241,7 @@ namespace BrainFreeze.Code.Items
             }
 
             inslot.Itemstack = currentStack;
-            inslot.Itemstack.Attributes.SetItemstack("IceCubeIngredient", content);
+            inslot.Itemstack.Attributes.SetItemstack("IceIngredient", content);
 
             return result;
         }
@@ -231,16 +250,26 @@ namespace BrainFreeze.Code.Items
 
         #region CustomRendering
 
-        private Dictionary<int, MultiTextureMeshRef> Meshrefs => ObjectCacheUtil.GetOrCreate(api, "icecubemeshrefs", () => new Dictionary<int, MultiTextureMeshRef>());
+        private Dictionary<int, MultiTextureMeshRef> Meshrefs => ObjectCacheUtil.GetOrCreate(api, cacheKey, () => new Dictionary<int, MultiTextureMeshRef>());
 
         public override void OnBeforeRender(ICoreClientAPI capi, ItemStack itemstack, EnumItemRenderTarget target, ref ItemRenderInfo renderinfo)
         {
-            var ingredient = GetContent(itemstack, capi.World);
-            if (ingredient != null && !Meshrefs.TryGetValue(ingredient.Id, out renderinfo.ModelRef))
+            var meshRefId = itemstack.TempAttributes.GetAsInt("meshRefId");
+            if(meshRefId == 0)
             {
-                MultiTextureMeshRef modelref = capi.Render.UploadMultiTextureMesh(GenMesh(ingredient.Item, capi.ItemTextureAtlas));
-                renderinfo.ModelRef = Meshrefs[ingredient.Id] = modelref;
+                var ingredient = GetContent(itemstack, capi.World);
+                if (ingredient != null)
+                {
+                    if(!Meshrefs.TryGetValue(ingredient.Id, out renderinfo.ModelRef))
+                    {
+                        MultiTextureMeshRef modelref = capi.Render.UploadMultiTextureMesh(GenMesh(ingredient.Item, capi.ItemTextureAtlas));
+                        renderinfo.ModelRef = Meshrefs[ingredient.Id] = modelref;
+                    }
+                    itemstack.TempAttributes.SetInt("meshRefId", ingredient.Id);
+                }
             }
+            else Meshrefs.TryGetValue(meshRefId, out renderinfo.ModelRef);
+            
             base.OnBeforeRender(capi, itemstack, target, ref renderinfo);
         }
 
@@ -248,7 +277,9 @@ namespace BrainFreeze.Code.Items
         {
             var manager = targetAtlas as ItemTextureAtlasManager;
             var capi = api as ICoreClientAPI;
-            capi.Tesselator.TesselateItem(this, out var mesh, new IceCubeTexPositionSource(manager, ingredient));
+            
+            //TODO
+            capi.Tesselator.TesselateItem(this, out var mesh, new IceTexPositionSource(manager, ingredient));
             return mesh;
         }
 
@@ -258,6 +289,7 @@ namespace BrainFreeze.Code.Items
             {
                 mesh.Dispose();
             }
+            ObjectCacheUtil.Delete(api, cacheKey);
             base.OnUnloaded(api);
         }
 

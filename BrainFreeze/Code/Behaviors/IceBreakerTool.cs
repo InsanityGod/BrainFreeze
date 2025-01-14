@@ -53,9 +53,9 @@ namespace BrainFreeze.Code.Behaviors
                 handHandling = EnumHandHandling.PreventDefault;
                 handling = EnumHandling.PreventDefault;
 
-                var iceCubeCount = (int)liquidContainer.GetCurrentLitres(blockSel.Position);
+                var iceCubeItem = world.GetItem(new AssetLocation("brainfreeze:icecubes")) as Ice;
 
-                var iceCubeItem = world.GetItem(new AssetLocation("brainfreeze:icecubes"));
+                var iceCubeCount = (int)(liquidContainer.GetCurrentLitres(blockSel.Position) / iceCubeItem.LitersPerItem);
 
                 slot.Itemstack.Collectible.DamageItem(world, playerEntity, slot, iceCubeCount / 5);
 
@@ -64,7 +64,7 @@ namespace BrainFreeze.Code.Behaviors
                     var stackSize = Math.Min(iceCubeCount, iceCubeItem.MaxStackSize);
 
                     var stack = new ItemStack(iceCubeItem, stackSize);
-                    (iceCubeItem as IceCube).SetContent(stack, content);
+                    iceCubeItem.SetContent(stack, content);
 
                     playerEntity.TryGiveItemStack(stack);
                     iceCubeCount -= stackSize;

@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace BrainFreeze.Config
 {
     public class ModConfig
     {
+        /// <summary>
+        /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now)
+        /// </summary>
         public Dictionary<string, float> AutoRegFrozenVariants { get; set; } = new Dictionary<string, float>()
         {
                 {"waterportion",         -0f },
@@ -46,6 +50,7 @@ namespace BrainFreeze.Config
         /// <summary>
         /// Limits? what are those?
         /// </summary>
+        [DefaultValue(false)]
         public bool SuperBrainFreeze { get; set; } = false;
     }
 }

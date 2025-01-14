@@ -19,7 +19,7 @@
   "game:tabname-brainfreeze": "Brain Freeze",
 
   //Interaction
-  "break-ice": "Break Ice",
+  "break-ice": "Turn into Ice Cubes",
 
   "frozen": "Frozen",
   //Item
@@ -27,5 +27,5 @@
   "icecubes-dynamicdesc": "Made by chiseling {0} into small pieces",
 
   //Ice Cube
-  "icecube-dye-*": "How colorful!"
+  "icecubes-dye-*": "How colorful!"
 }

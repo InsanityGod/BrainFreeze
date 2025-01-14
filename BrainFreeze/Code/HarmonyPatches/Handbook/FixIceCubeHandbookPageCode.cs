@@ -18,13 +18,13 @@ namespace BrainFreeze.Code.HarmonyPatches.Handbook
         [HarmonyPrefix]
         public static bool PageCodeForStackPrefix(ItemStack stack, ref string __result)
         {
-            if(stack.Collectible is IceCube iceCube)
+            if(stack.Collectible is Ice ice)
             {
-                var content = iceCube.GetContent(stack);
+                var content = ice.GetContent(stack);
 
                 if(content != null)
                 {
-                    __result =  $"{stack.Class.Name()}-{iceCube.Code.ToShortString()}-{content.Id}";
+                    __result =  $"{stack.Class.Name()}-{ice.Code.ToShortString()}-{content.Id}";
                     return false;
                 }
             }

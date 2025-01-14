@@ -6,12 +6,12 @@ using Vintagestory.Client.NoObf;
 
 namespace BrainFreeze.Code.Rendering
 {
-    public class IceCubeTexPositionSource : ITexPositionSource
+    public class IceTexPositionSource : ITexPositionSource
     {
         private readonly ItemTextureAtlasManager manager;
         private readonly Item item;
 
-        public IceCubeTexPositionSource(ItemTextureAtlasManager manager, Item item)
+        public IceTexPositionSource(ItemTextureAtlasManager manager, Item item)
         {
             this.manager = manager;
             this.item = item;
