@@ -3,14 +3,12 @@ using BrainFreeze.Code.Transition;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
@@ -64,7 +62,7 @@ namespace BrainFreeze.Code.Items
                 {
                     var containableProps = content.Collectible.Attributes["waterTightContainerProps"].AsObject<WaterTightContainableProps>();
                     var itemsPerLiter = containableProps?.ItemsPerLitre ?? 100;
-                    content.StackSize = (int)(LitersPerItem * itemsPerLiter);
+                    content.StackSize = (int)(ice.StackSize * LitersPerItem * itemsPerLiter);
                 }
             }
             return content;
