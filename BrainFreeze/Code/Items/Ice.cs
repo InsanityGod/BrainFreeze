@@ -21,7 +21,7 @@ namespace BrainFreeze.Code.Items
     {
         public float LitersPerItem { get; set; } = 1;
         
-        private string cacheKey;
+        private string cacheKey = "DefaultCache";
         
         public override void OnLoaded(ICoreAPI api)
         {
@@ -278,7 +278,6 @@ namespace BrainFreeze.Code.Items
             var manager = targetAtlas as ItemTextureAtlasManager;
             var capi = api as ICoreClientAPI;
             
-            //TODO
             capi.Tesselator.TesselateItem(this, out var mesh, new IceTexPositionSource(manager, ingredient));
             return mesh;
         }

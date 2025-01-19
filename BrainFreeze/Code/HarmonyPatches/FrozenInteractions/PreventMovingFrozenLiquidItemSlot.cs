@@ -16,9 +16,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
     {
         public static IEnumerable<MethodBase> TargetMethods()
         {
-            var derivedTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type != typeof(ItemSlotCreative) && typeof(ItemSlot).IsAssignableFrom(type));
+            var derivedTypes = BrainFreezeModSystem.ModTypesForHarmonyScan.Where(type => type != typeof(ItemSlotCreative) && typeof(ItemSlot).IsAssignableFrom(type));
             //Excluding ItemSlotCreative because it decided it wanted to be special and rename the parameter... which means harmony will crash if we patch it
 
             foreach (var type in derivedTypes)

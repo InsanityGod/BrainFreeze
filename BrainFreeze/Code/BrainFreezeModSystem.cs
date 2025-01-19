@@ -6,7 +6,9 @@ using BrainFreeze.Config;
 using CustomTransitionLib;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -51,10 +53,36 @@ namespace BrainFreeze.Code
             }
         }
 
+        #region HarmonyWorkAround
+        private static ICoreAPI apiCache;
+
+        public static IEnumerable<Assembly> ModAssembliesForHarmonyScan => apiCache.ModLoader.Mods.Select(mod => mod.Systems.FirstOrDefault())
+            .Where(modSystem => modSystem != null)
+            .Select(modSystem => modSystem.GetType().Assembly);
+
+        public static IEnumerable<Type> ModTypesForHarmonyScan => ModAssembliesForHarmonyScan.SelectMany(assembly =>
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch
+            {
+                try
+                {
+                    apiCache.Logger.Warning($"Could not get types from assembly '{assembly.FullName}', WearAndTear Harmony Patches might not have applied propperly for this mod");
+                }
+                catch { }
+                return Enumerable.Empty<Type>();
+            }
+        });
+        #endregion HarmonyWorkAround
+
         public override void Start(ICoreAPI api)
         {
             if (!Harmony.HasAnyPatches(Mod.Info.ModID))
             {
+                apiCache = api;
                 harmony = new Harmony(Mod.Info.ModID);
                 harmony.PatchAllUncategorized();
 
@@ -62,12 +90,12 @@ namespace BrainFreeze.Code
                 {
                     harmony.PatchCategory("hydrateordiedrate");
                 }
+                apiCache = null;
             }
 
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
             registry.Register<BrainFreezeTransitionHandler, EnumBrainFreezeTransitionType>();
 
-            //api.RegisterItemClass("brainfreeze:IceCube", typeof(IceCube));
             api.RegisterItemClass("brainfreeze:Ice", typeof(Ice));
 
             api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
