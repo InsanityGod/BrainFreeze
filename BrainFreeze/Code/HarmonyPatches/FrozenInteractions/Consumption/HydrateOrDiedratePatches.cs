@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using BrainFreeze.Code.Items;
+﻿using BrainFreeze.Code.Items;
 using HarmonyLib;
-using HydrateOrDiedrate.patches;
+using HydrateOrDiedrate;
 using Vintagestory.API.Common;
 
 namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions.Consumption
