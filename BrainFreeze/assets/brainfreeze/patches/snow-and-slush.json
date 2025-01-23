@@ -1,0 +1,86 @@
+[
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "addmerge",
+    "path": "/nutritionPropsByType",
+    "value": {
+      "snowball-snow": {
+        "saturation": -10,
+        "foodCategory": "NoNutrition"
+      }
+    },
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "addmerge",
+    "path": "/attributes",
+    "value": {
+      "freezePoint": 0,
+      "ConsumptionTemperaturePenalty": -2
+    },
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "replace",
+    "path": "/transitionablePropsByType/snowball-snow/0/type",
+    "value": "TemperatureMelt",
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "addmerge",
+    "path": "/nutritionProps",
+    "value": {
+      "saturation": -10,
+      "foodCategory": "NoNutrition"
+    },
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "add",
+    "path": "/attributes",
+    "value": {
+      "freezePoint": 0,
+      "ConsumptionTemperaturePenalty": -1.5 //TODO maybe add this to tooltip?
+    },
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "addmerge",
+    "path": "/transitionableProps",
+    "value": [
+      {
+        "type": "TemperatureMelt",
+        "freshHours": { "avg": 0 },
+        "transitionHours": { "avg": 3 },
+        "transitionedStack": {
+          "type": "item",
+          "code": "game:waterportion"
+        },
+        "transitionRatio": 25
+      },
+      {
+        "type": "Freeze",
+        "freshHours": { "avg": 0 },
+        "transitionHours": { "avg": 3 },
+        "transitionedStack": {
+          "type": "item",
+          "code": "game:waterportion-brainfreeze"
+        },
+        "transitionRatio": 25
+      } //TODO what should we do if this happens in inventory?
+    ],
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  },
+  {
+    "file": "game:recipes/barrel/waterfromslush.json",
+    "op": "add",
+    "path": "/enabled",
+    "value": "false",
+    "dependsOn": [ { "modid": "hydrateordiedrate" } ]
+  }
+]

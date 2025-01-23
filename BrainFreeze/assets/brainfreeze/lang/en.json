@@ -15,6 +15,11 @@
   "itemstack-thaw-duration-days": "Will <font color=\"burlywood\">thaw</font> in {p0:less than a day|# day|# days}",
   "itemstack-thaw-duration-hours": "Will <font color=\"burlywood\">thaw</font> in {p0:less than an hour|# hour|# hours}",
   "itemstack-thaw-handbook": "Thaws into",
+
+  "itemstack-temperaturemelt": "<font color=\"burlywood\">Meltable.</font>",
+  "itemstack-temperaturemelt-progression": "<font color=\"burlywood\">Meltable.</font> {0}% melted",
+  "itemstack-temperaturemelt-duration-days": "Will <font color=\"burlywood\">melt</font> in {p0:less than a day|# day|# days}",
+  "itemstack-temperaturemelt-duration-hours": "Will <font color=\"burlywood\">melt</font> in {p0:less than an hour|# hour|# hours}",
   //Tabnames
   "game:tabname-brainfreeze": "Brain Freeze",
 

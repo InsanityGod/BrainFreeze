@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 
 namespace BrainFreeze.Config
 {
@@ -28,8 +30,8 @@ namespace BrainFreeze.Config
                 {"dilutedcassiterite",   -1.5f},
                 {"dilutedchromite",      -1.5f},
                 {"dye",                  -2f},
-                {"weaktanningportion",   -1f},
-                {"strongtanningportion", -3f},
+                {"weaktanninportion",   -1f},
+                {"strongtanninportion", -3f},
                 {"eggwhiteportion",      -0.5f},
                 {"eggyolkportion",       -0.5f},
                 {"eggyolkfullportion",   -0.5f},

@@ -8,7 +8,7 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.Transition
 {
-    public class BrainFreezeTransitionHandler : ICustomTransitionHandler<EnumBrainFreezeTransitionType>
+    public class BrainFreezeTransitionHandler : ICustomTransitionHandler<EBrainFreezeTransitionType> , ICustomTransitionHandler
     {
         public string ModId => "brainfreeze";
 
@@ -35,7 +35,7 @@ namespace BrainFreeze.Code.Transition
             return climate.Temperature;
         }
 
-        public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EnumBrainFreezeTransitionType transType, float currentResult)
+        public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EBrainFreezeTransitionType transType, float currentResult)
         {
             float multiplier = 0;
 
@@ -48,13 +48,14 @@ namespace BrainFreeze.Code.Transition
 
             return transType switch
             {
-                EnumBrainFreezeTransitionType.Freeze => temperature <= freezingPoint ? diffMult : -diffMult,
-                EnumBrainFreezeTransitionType.Thaw => temperature >= freezingPoint ? diffMult : -diffMult,
+                EBrainFreezeTransitionType.Freeze => temperature <= freezingPoint ? diffMult : -diffMult,
+                EBrainFreezeTransitionType.Thaw => temperature >= freezingPoint ? diffMult : -diffMult,
+                EBrainFreezeTransitionType.TemperatureMelt => temperature >= freezingPoint ? diffMult : -diffMult,
                 _ => multiplier,
             };
         }
         //TODO rainwater collection :p
-        public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EnumBrainFreezeTransitionType transType, ref ItemStack result)
+        public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EBrainFreezeTransitionType transType, ref ItemStack result)
         {
             //TODO: I wish there was a better way to do this...
             if (result.Collectible?.MatterState == EnumMatterState.Liquid)

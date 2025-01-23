@@ -5,6 +5,7 @@ using BrainFreeze.Code.Transition;
 using BrainFreeze.Config;
 using CustomTransitionLib;
 using HarmonyLib;
+using HydrateOrDiedrate;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,7 +95,7 @@ namespace BrainFreeze.Code
             }
 
             var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
-            registry.Register<BrainFreezeTransitionHandler, EnumBrainFreezeTransitionType>();
+            registry.Register<BrainFreezeTransitionHandler, EBrainFreezeTransitionType>();
 
             api.RegisterItemClass("brainfreeze:Ice", typeof(Ice));
 
@@ -114,6 +115,19 @@ namespace BrainFreeze.Code
                 }
             }
             DynamicFrozenVariant.FinalizeIceCube(api);
+
+            if (api.ModLoader.IsModEnabled("hydrateordiedrate"))
+            {
+                var water = api.World.GetItem(new AssetLocation("waterportion"));
+
+                var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 4;
+                var snowball = api.World.GetItem(new AssetLocation("snowball-snow"));
+                HydrationManager.SetHydration(api, snowball, snowballHydration);
+
+                var slush = api.World.GetItem(new AssetLocation("slush"));
+                HydrationManager.SetHydration(api, slush, snowballHydration); //TODO: maybe some water hydration should be lost as it melts?
+                //TODO fix buckets
+            }
 
             base.AssetsFinalize(api);
         }

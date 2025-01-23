@@ -118,7 +118,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             nonFrozenItem.TransitionableProps = nonFrozenItem.TransitionableProps.Prepend(new TransitionableProperties
             {
-                Type = EnumBrainFreezeTransitionType.Freeze.ConvertToFake(),
+                Type = EBrainFreezeTransitionType.Freeze.ConvertToFake(),
                 FreshHours = NatFloat.Zero,
                 TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
                 TransitionRatio = 1,
@@ -134,7 +134,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             frozenItem.TransitionableProps = frozenItem.TransitionableProps.Prepend(new TransitionableProperties
             {
-                Type = EnumBrainFreezeTransitionType.Thaw.ConvertToFake(),
+                Type = EBrainFreezeTransitionType.Thaw.ConvertToFake(),
                 FreshHours = NatFloat.Zero,
                 TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
                 TransitionRatio = 1,
@@ -210,7 +210,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
             //Fix transitions
             if (frozenItem.TransitionableProps != null)
             {
-                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != EnumBrainFreezeTransitionType.Thaw.ConvertToFake()))
+                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != EBrainFreezeTransitionType.Thaw.ConvertToFake()))
                 {
                     var code = transition.TransitionedStack?.Code?.ToString();
                     if (code != null)
