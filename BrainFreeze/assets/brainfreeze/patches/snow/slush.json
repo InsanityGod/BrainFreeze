@@ -1,0 +1,72 @@
+[
+  
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "addmerge",
+    "path": "/nutritionProps",
+    "value": {
+      "saturation": 0,
+      "foodCategory": "NoNutrition"
+    }
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "addmerge",
+    "path": "/attributes",
+    "value": {
+      "freezePoint": 0,
+      "ConsumptionTemperaturePenalty": -0.15
+    }
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "replace",
+    "path": "/attributes/waterTightContainerProps/itemsPerLitre",
+    "value": 20
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "replace",
+    "path": "/maxstacksize",
+    "value": 40
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "replace",
+    "path": "/attributes/waterTightContainerProps/maxStackSize",
+    "value": 40
+  },
+  {
+    "file": "game:itemtypes/resource/slush.json",
+    "op": "addmerge",
+    "path": "/transitionableProps",
+    "value": [
+      {
+        "type": "TemperatureMelt",
+        "freshHours": { "avg": 0 },
+        "transitionHours": { "avg": 3 },
+        "transitionedStack": {
+          "type": "item",
+          "code": "game:waterportion"
+        },
+        "transitionRatio": 5
+      },
+      {
+        "type": "Freeze",
+        "freshHours": { "avg": 0 },
+        "transitionHours": { "avg": 3 },
+        "transitionedStack": {
+          "type": "item",
+          "code": "game:waterportion-brainfreeze"
+        },
+        "transitionRatio": 25
+      } //TODO what should we do if this happens in inventory?
+    ]
+  },
+  {
+    "file": "game:recipes/barrel/waterfromslush.json",
+    "op": "add",
+    "path": "/enabled",
+    "value": "false"
+  }
+]

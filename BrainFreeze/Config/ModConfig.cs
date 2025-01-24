@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 
@@ -54,5 +55,23 @@ namespace BrainFreeze.Config
         /// </summary>
         [DefaultValue(false)]
         public bool SuperBrainFreeze { get; set; } = false;
+
+        /// <summary>
+        /// How much damage is taken every time you take damage from freezing
+        /// </summary>
+        [Category("Cold Penalties")]
+        [Range(0, float.PositiveInfinity)]
+        [DefaultValue(1f)]
+        public float FreezingDamage { get; set; } = 1f;
+
+
+        /// <summary>
+        /// How much you can be slowed down when you are frozen
+        /// </summary>
+        [Category("Cold Penalties")]
+        [DisplayFormat(DataFormatString = "P")]
+        [Range(0, 1)]
+        [DefaultValue(0.3f)]
+        public float FreezingMaxSpeedPenalty { get; set; } = 0.3f;
     }
 }

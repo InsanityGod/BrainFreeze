@@ -120,12 +120,20 @@ namespace BrainFreeze.Code
             {
                 var water = api.World.GetItem(new AssetLocation("waterportion"));
 
-                var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 4;
+                var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 20;
                 var snowball = api.World.GetItem(new AssetLocation("snowball-snow"));
+
+                snowball.NutritionProps.Satiety = -1;
                 HydrationManager.SetHydration(api, snowball, snowballHydration);
 
                 var slush = api.World.GetItem(new AssetLocation("slush"));
-                HydrationManager.SetHydration(api, slush, snowballHydration); //TODO: maybe some water hydration should be lost as it melts?
+                
+                slush.NutritionProps.Satiety = -1;
+                HydrationManager.SetHydration(api, slush, snowballHydration);
+                //TODO: see if I can change the snowball model to reflect that you have multiple items on the stack
+                //TODO: Collecting snow should be slower
+                //TODO: Moving snow with shovel
+                //TODO: allowing you to put snow back down?
                 //TODO fix buckets
             }
 

@@ -1,0 +1,50 @@
+[
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "replace",
+    "path": "/maxstacksize",
+    "value": 20
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "addmerge",
+    "path": "/nutritionPropsByType",
+    "value": {
+      "snowball-snow": {
+        "saturation": 0,
+        "foodCategory": "NoNutrition"
+      }
+    }
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "addmerge",
+    "path": "/attributes",
+    "value": {
+      "freezePoint": 0,
+      "ConsumptionTemperaturePenalty": -0.25
+    }
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "replace",
+    "path": "/transitionablePropsByType/snowball-snow/0/type",
+    "value": "TemperatureMelt"
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
+    "op": "addmerge",
+    "path": "/attributesByType",
+    "value": {
+      "snowball-snow": {
+        "inContainerTexture": { "base": "block/liquid/snow/normal1" },
+        "waterTightContainerProps": {
+          "texture": { "base": "block/liquid/snow/normal1" },
+          "itemsPerLitre": 20,
+          "isopaque": false,
+          "maxStackSize": 20
+        }
+      }
+    }
+  }
+]
