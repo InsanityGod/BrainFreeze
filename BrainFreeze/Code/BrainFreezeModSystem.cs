@@ -133,8 +133,7 @@ namespace BrainFreeze.Code
                 //TODO: see if I can change the snowball model to reflect that you have multiple items on the stack
                 //TODO: Collecting snow should be slower
                 //TODO: Moving snow with shovel
-                //TODO: allowing you to put snow back down?
-                //TODO fix buckets
+                //TODO: Allowing to grab snow with buckets
             }
 
             base.AssetsFinalize(api);
