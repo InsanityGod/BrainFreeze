@@ -1,6 +1,7 @@
 ﻿using BrainFreeze.Code.Behaviors;
 using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
 using BrainFreeze.Code.Items;
+using BrainFreeze.Code.LakeFreezing;
 using BrainFreeze.Code.Transition;
 using BrainFreeze.Config;
 using CustomTransitionLib;
@@ -78,6 +79,13 @@ namespace BrainFreeze.Code
             }
         });
         #endregion HarmonyWorkAround
+
+        public LakeFreezingManager LakeFreezingManager { get; private set; }
+        public override void StartServerSide(ICoreServerAPI api)
+        {
+            base.StartServerSide(api);
+            LakeFreezingManager = new(api);
+        }
 
         public override void Start(ICoreAPI api)
         {
