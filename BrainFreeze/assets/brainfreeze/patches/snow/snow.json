@@ -33,6 +33,12 @@
   },
   {
     "file": "game:itemtypes/snowball.json",
+    "op": "replace",
+    "path": "/transitionablePropsByType/snowball-snow/0/transitionHours",
+    "value": { "avg": 3 }
+  },
+  {
+    "file": "game:itemtypes/snowball.json",
     "op": "addmerge",
     "path": "/attributesByType",
     "value": {

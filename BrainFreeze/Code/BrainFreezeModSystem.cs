@@ -1,19 +1,16 @@
 ﻿using BrainFreeze.Code.Behaviors;
+using BrainFreeze.Code.Compatibility;
 using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
 using BrainFreeze.Code.Items;
 using BrainFreeze.Code.Transition;
 using BrainFreeze.Config;
 using CustomTransitionLib;
 using HarmonyLib;
-using HydrateOrDiedrate;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 
 namespace BrainFreeze.Code
 {
@@ -28,14 +25,12 @@ namespace BrainFreeze.Code
         private Harmony harmony;
 
         //TODO if items are in barrel while liquid is at certain level and freezes, the slot should become locked
-        //TODO maybe ensure mixing recipes can't be created with frozen variants
 
         //TODO maybe some code for removing no longer existing frozen variants from a world?
 
         //TODO spill over into other slots if going over slot stacksize
 
-        //TODO snow liquid that will be collected when it is snowing instead of rainwater :p
-        //TODO also why can't eat snow?
+        //TODO have snow be collectible similar to rainwater
 
         public override void StartPre(ICoreAPI api) => LoadConfig(api);
 
@@ -118,18 +113,7 @@ namespace BrainFreeze.Code
 
             if (api.ModLoader.IsModEnabled("hydrateordiedrate"))
             {
-                var water = api.World.GetItem(new AssetLocation("waterportion"));
-
-                var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 20;
-                var snowball = api.World.GetItem(new AssetLocation("snowball-snow"));
-
-                snowball.NutritionProps.Satiety = -1;
-                HydrationManager.SetHydration(api, snowball, snowballHydration);
-
-                var slush = api.World.GetItem(new AssetLocation("slush"));
-                
-                slush.NutritionProps.Satiety = -1;
-                HydrationManager.SetHydration(api, slush, snowballHydration);
+                HydrateOrDiedrateCompatibility.FixSnow(api);
                 //TODO: see if I can change the snowball model to reflect that you have multiple items on the stack
                 //TODO: Collecting snow should be slower
                 //TODO: Moving snow with shovel
