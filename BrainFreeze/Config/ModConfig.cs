@@ -72,6 +72,15 @@ namespace BrainFreeze.Config
         [DisplayFormat(DataFormatString = "P")]
         [Range(0, 1)]
         [DefaultValue(0.3f)]
-        public float FreezingMaxSpeedPenalty { get; set; } = 0.3f;
+        public float FreezingSpeedPenalty { get; set; } = 0.3f;
+
+        /// <summary>
+        /// How much more dangerous being wet is when it's cold
+        /// </summary>
+        [Category("Cold Penalties")]
+        [DisplayFormat(DataFormatString = "P")]
+        [Range(0f, 2f)]
+        [DefaultValue(1)]
+        public float WetnessDangerFactor { get; set; } = 1f;
     }
 }
