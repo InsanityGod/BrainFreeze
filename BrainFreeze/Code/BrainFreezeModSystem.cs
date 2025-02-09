@@ -5,6 +5,8 @@ using BrainFreeze.Code.Items;
 using BrainFreeze.Code.Transition;
 using BrainFreeze.Config;
 using CustomTransitionLib;
+using ExpandedRoomsLib.Code;
+using ExpandedRoomsLib.Code.Rooms.Behaviors.Temperature;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -76,6 +78,14 @@ namespace BrainFreeze.Code
 
         public override void Start(ICoreAPI api)
         {
+            var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
+            registry.Register<BrainFreezeTransitionHandler, EBrainFreezeTransitionType>();
+
+            api.RegisterItemClass("brainfreeze:Ice", typeof(Ice));
+
+            api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
+            api.RegisterCollectibleBehaviorClass("brainfreeze:frozennameprefix", typeof(FrozenNamePrefix));
+
             if (!Harmony.HasAnyPatches(Mod.Info.ModID))
             {
                 apiCache = api;
@@ -89,13 +99,12 @@ namespace BrainFreeze.Code
                 apiCache = null;
             }
 
-            var registry = api.ModLoader.GetModSystem<CustomTransitionLibModSystem>();
-            registry.Register<BrainFreezeTransitionHandler, EBrainFreezeTransitionType>();
+            if(api.ModLoader.IsModEnabled("expandedroomslib")) ExpandedRoomsCompatibility(api);
+        }
 
-            api.RegisterItemClass("brainfreeze:Ice", typeof(Ice));
-
-            api.RegisterCollectibleBehaviorClass("brainfreeze:icebreakertool", typeof(IceBreakerTool));
-            api.RegisterCollectibleBehaviorClass("brainfreeze:frozennameprefix", typeof(FrozenNamePrefix));
+        public void ExpandedRoomsCompatibility(ICoreAPI api)
+        {
+            //if(api.Side == EnumAppSide.Server) api.ModLoader.GetModSystem<ExpandedRoomsLibModSystem>().RegisterRoomBehavior<RoomTemperatureBehavior>(); //TODO
         }
 
         public override void AssetsFinalize(ICoreAPI api)

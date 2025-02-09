@@ -62,6 +62,14 @@
   <Content Include="assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
+  <Compile Remove="assets\brainfreeze\compatibility\**" />
+  <Compile Remove="assets\brainfreeze\shapes\food\**" />
+  <Content Remove="assets\brainfreeze\compatibility\**" />
+  <Content Remove="assets\brainfreeze\shapes\food\**" />
+  <EmbeddedResource Remove="assets\brainfreeze\compatibility\**" />
+  <EmbeddedResource Remove="assets\brainfreeze\shapes\food\**" />
+  <None Remove="assets\brainfreeze\compatibility\**" />
+  <None Remove="assets\brainfreeze\shapes\food\**" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
@@ -71,8 +79,7 @@
 </ItemGroup>
 
 <ItemGroup>
-  <Folder Include="assets\brainfreeze\compatibility\hydrateordiedrate\patches\" />
-  <Folder Include="assets\brainfreeze\shapes\food\" />
+  <ProjectReference Include="..\..\ExpandedRoomsLib\ExpandedRoomsLib\ExpandedRoomsLib.csproj" />
 </ItemGroup>
 
 </Project>
