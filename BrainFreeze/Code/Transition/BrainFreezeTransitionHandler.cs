@@ -41,6 +41,7 @@ namespace BrainFreeze.Code.Transition
 
             var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
             if(pos == null) return multiplier;
+            if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
 
             var freezingPoint = GetFreezingPoint(inSlot);
             var temperature = GetTemperatureAtPos(world, inSlot, pos);
