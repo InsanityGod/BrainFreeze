@@ -1,4 +1,5 @@
-﻿using CustomTransitionLib.interfaces;
+﻿using InsanityLib.Handlers;
+using Newtonsoft.Json.Linq;
 using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -8,14 +9,39 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.Transition
 {
-    public class BrainFreezeTransitionHandler : ICustomTransitionHandler<EBrainFreezeTransitionType> , ICustomTransitionHandler
+    public class TemperatureTransitionHandler : TransitionHandler
     {
-        public string ModId => "brainfreeze";
+        public bool Invert { get; private set; }
+        
+        public override void LoadAttributes(JsonObject attributes)
+        {
+            if(attributes == null) return;
+            Invert = attributes["Invert"].AsBool(Invert);
+        }
 
+        public const float DefaultFreezePoint = 0;
         public static float GetFreezingPoint(ItemSlot slot)
         {
             var attr = slot.Itemstack?.Collectible.Attributes;
-            return attr != null ? attr["freezePoint"].AsFloat() : 0;
+            return attr != null ? attr["freezePoint"].AsFloat() : DefaultFreezePoint;
+        }
+
+        public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, float currentResult)
+        {
+            float multiplier = 0;
+
+            var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
+            if(pos == null) return multiplier;
+            if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
+
+            var freezingPoint = GetFreezingPoint(inSlot); // 0
+            var temperature = GetTemperatureAtPos(world, inSlot, pos); //33
+            var diffMult = Math.Abs(temperature - freezingPoint) / 5; // 33 /5 = 6.5
+
+            // 33 => 0 ? 6.5 : -6.5
+            if (Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
+            // 33 <= 0 ? 6.5 : -6.5
+            return temperature <= freezingPoint ? diffMult : -diffMult;
         }
 
         //inSlot is just here to make hooking into this with harmony patches is easier (in case you want to make special inventory slots with heating properties)
@@ -35,28 +61,7 @@ namespace BrainFreeze.Code.Transition
             return climate.Temperature;
         }
 
-        public float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, EBrainFreezeTransitionType transType, float currentResult)
-        {
-            float multiplier = 0;
-
-            var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
-            if(pos == null) return multiplier;
-            if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
-
-            var freezingPoint = GetFreezingPoint(inSlot);
-            var temperature = GetTemperatureAtPos(world, inSlot, pos);
-            var diffMult = Math.Abs(temperature - freezingPoint) / 5;
-
-            return transType switch
-            {
-                EBrainFreezeTransitionType.Freeze => temperature <= freezingPoint ? diffMult : -diffMult,
-                EBrainFreezeTransitionType.Thaw => temperature >= freezingPoint ? diffMult : -diffMult,
-                EBrainFreezeTransitionType.TemperatureMelt => temperature >= freezingPoint ? diffMult : -diffMult,
-                _ => multiplier,
-            };
-        }
-        //TODO rainwater collection :p
-        public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, EBrainFreezeTransitionType transType, ref ItemStack result)
+        public override void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props,  ref ItemStack result)
         {
             //TODO: I wish there was a better way to do this...
             if (result.Collectible?.MatterState == EnumMatterState.Liquid)
@@ -118,28 +123,29 @@ namespace BrainFreeze.Code.Transition
                 slot.Inventory.Api?.World.BlockAccessor.GetBlockEntity(slot.Inventory.Pos)?.MarkDirty();
             }
         }
+
         public static void HandleLiquidTransitionResult(ItemSlot slot, ref ItemStack result)
         {
-                slot.Itemstack = result;
-                if(result.Collectible.MatterState != EnumMatterState.Liquid) return;
-                var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
-                if (slot is not DummySlot && slot.CanTake() && pos != null)
+            slot.Itemstack = result;
+            if(result.Collectible.MatterState != EnumMatterState.Liquid) return;
+            var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
+            if (slot is not DummySlot && slot.CanTake() && pos != null)
+            {
+                if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
                 {
-                    if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
-                    {
-                        liquidContainer.SetContent(pos, result);
-                    }
-                    else
-                    {
-                        slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
-                        result.StackSize = 0;
-                    }
-                    if (slot.Inventory is InventoryBasePlayer)
-                    {
-                        //Edge case handling for ice cubes
-                        result.StackSize = 0;
-                    }
+                    liquidContainer.SetContent(pos, result);
                 }
+                else
+                {
+                    slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
+                    result.StackSize = 0;
+                }
+                if (slot.Inventory is InventoryBasePlayer)
+                {
+                    //Edge case handling for ice cubes
+                    result.StackSize = 0;
+                }
+            }
         }
     }
 }

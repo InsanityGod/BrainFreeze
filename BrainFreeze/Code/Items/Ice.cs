@@ -215,8 +215,8 @@ namespace BrainFreeze.Code.Items
                 var content = GetContent(slot.Itemstack);
                 result = content.Collectible.OnTransitionNow(slot, props);
             }
-
-            BrainFreezeTransitionHandler.HandleLiquidTransitionResult(slot, ref result);
+            
+            TemperatureTransitionHandler.HandleLiquidTransitionResult(slot, ref result);
 
             return result;
         }

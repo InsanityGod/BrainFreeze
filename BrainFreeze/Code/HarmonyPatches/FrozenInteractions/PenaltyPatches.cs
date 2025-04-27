@@ -21,8 +21,8 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
         {
             var codes = instructions.ToList();
             var target = AccessTools.Method(typeof(Entity), nameof(Entity.ReceiveDamage));
-            var configCall = AccessTools.PropertyGetter(typeof(BrainFreezeModSystem), nameof(BrainFreezeModSystem.Config));
-            var freezeDamageCall = AccessTools.PropertyGetter(typeof(ModConfig), nameof(ModConfig.FreezingDamage));
+            var configCall = AccessTools.PropertyGetter(typeof(BrainFreezeModSystem), nameof(BrainFreezeConfig.Instance));
+            var freezeDamageCall = AccessTools.PropertyGetter(typeof(BrainFreezeConfig), nameof(BrainFreezeConfig.FreezingDamage));
             for (var i = 0; i < codes.Count; i++)
             {
                 var code = codes[i];
@@ -46,7 +46,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
         {
             var str = __instance.entity.WatchedAttributes.GetFloat("freezingEffectStrength", 0);
 
-            __instance.entity.Stats.Set("walkspeed", "freezingPenalty", -str * BrainFreezeModSystem.Config.FreezingMaxSpeedPenalty, true);
+            __instance.entity.Stats.Set("walkspeed", "freezingPenalty", -str * BrainFreezeConfig.Instance.FreezingMaxSpeedPenalty, true);
         }
     }
 }

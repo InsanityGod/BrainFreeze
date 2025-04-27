@@ -42,7 +42,7 @@
     "path": "/transitionableProps",
     "value": [
       {
-        "type": "TemperatureMelt",
+        "type": "brainfreeze:melt",
         "freshHours": { "avg": 0 },
         "transitionHours": { "avg": 3 },
         "transitionedStack": {
@@ -52,7 +52,7 @@
         "transitionRatio": 5
       },
       {
-        "type": "Freeze",
+        "type": "brainfreeze:freeze",
         "freshHours": { "avg": 0 },
         "transitionHours": { "avg": 3 },
         "transitionedStack": {

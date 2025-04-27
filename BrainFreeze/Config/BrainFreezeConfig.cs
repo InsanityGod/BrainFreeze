@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using InsanityLib.Attributes.Auto.Config;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 
 namespace BrainFreeze.Config
 {
-    public class ModConfig
+    public class BrainFreezeConfig
     {
+        [AutoConfig("BrainFreezeConfig.json", ServerSync = true)]
+        public static BrainFreezeConfig Instance { get; private set; }
+
         /// <summary>
         /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now)
         /// </summary>

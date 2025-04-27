@@ -1,0 +1,7 @@
+{
+  "Code": "melt",
+  "Handler": "TemperatureTransitionHandler",
+  "Attributes": {
+    "invert": true
+  }
+}

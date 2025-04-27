@@ -24,7 +24,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
             {
                 if (Traverse.Create(__instance).Field<ICoreAPI>("api").Value is ICoreClientAPI clientApi)
                 {
-                    clientApi.TriggerIngameError(null, "liquid-frozen", Lang.Get("brainfreeze:liquid-frozen"));
+                    clientApi.TriggerIngameError(null, "liquid-frozen", Lang.Get("brainfreeze:liquid-frozen")); //TODO apply on liquid based meals as well
                 }
                 __result = 0;
                 return false;

@@ -12,18 +12,18 @@ namespace BrainFreeze.Code.Compatibility
     {
         internal static void FixSnow(ICoreAPI api)
         {
-                var water = api.World.GetItem(new AssetLocation("waterportion"));
+            var water = api.World.GetItem(new AssetLocation("waterportion"));
 
-                var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 20;
-                var snowball = api.World.GetItem(new AssetLocation("snowball-snow"));
+            var snowballHydration = HydrationManager.GetHydration(new ItemStack(water)) / 20;
+            var snowball = api.World.GetItem(new AssetLocation("snowball-snow"));
 
-                snowball.NutritionProps.Satiety = -1;
-                HydrationManager.SetHydration(api, snowball, snowballHydration);
+            snowball.NutritionProps.Satiety = -1;
+            HydrationManager.SetHydration(api, snowball, snowballHydration);
 
-                var slush = api.World.GetItem(new AssetLocation("slush"));
-                
-                slush.NutritionProps.Satiety = -1;
-                HydrationManager.SetHydration(api, slush, snowballHydration);
+            var slush = api.World.GetItem(new AssetLocation("slush"));
+            
+            slush.NutritionProps.Satiety = -1;
+            HydrationManager.SetHydration(api, slush, snowballHydration);
         }
     }
 }

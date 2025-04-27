@@ -12,7 +12,7 @@ using Vintagestory.API.Common;
 namespace BrainFreeze.Code.HarmonyPatches.TMP
 {
     [HarmonyPatch(typeof(CompositeTexture))]
-    public static class FixBlendedOverlayDomain
+    public static class FixBlendedOverlayDomain //TODO check if still neccesary
     {
         [HarmonyPatch(nameof(CompositeTexture.Bake), argumentTypes: new Type[] { typeof(IAssetManager), typeof(CompositeTexture) })]
         [HarmonyTranspiler]

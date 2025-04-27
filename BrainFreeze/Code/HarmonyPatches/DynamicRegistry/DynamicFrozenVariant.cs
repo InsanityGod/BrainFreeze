@@ -1,18 +1,16 @@
 ﻿using BrainFreeze.Code.Behaviors;
-using BrainFreeze.Code.Transition;
-using CustomTransitionLib;
+using BrainFreeze.Config;
 using HarmonyLib;
+using InsanityLib.Util.ContentFeatures;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
-using Vintagestory.Client.NoObf;
 using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
@@ -20,7 +18,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 {
     //Just pretend you didn't see this class
     [HarmonyPatch(typeof(RegistryObjectType))]
-    public static class DynamicFrozenVariant
+    public static class DynamicFrozenVariant //TODO cleanup
     {
         public const string LoggingKey = "BrainFreezeAutoRegistry";
 
@@ -28,7 +26,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
         [HarmonyPostfix]
         public static void CreateBasetypePostfix(RegistryObjectType __instance)
         {
-            if(!BrainFreezeModSystem.Config.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint) && !BrainFreezeModSystem.Config.SuperBrainFreeze) return;
+            if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint) && !BrainFreezeConfig.Instance.SuperBrainFreeze) return;
 
             __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
 
@@ -95,7 +93,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
             frozenItem.Attributes ??= new JsonObject(new JObject());
             nonFrozenItem.Attributes ??= new JsonObject(new JObject());
 
-            BrainFreezeModSystem.Config.AutoRegFrozenVariants.TryGetValue(nonFrozenItem.Code.Path.Split('-')[0], out float freezePoint);
+            BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(nonFrozenItem.Code.Path.Split('-')[0], out float freezePoint);
 
             frozenItem.Attributes.Token["freezePoint"] = freezePoint;
             nonFrozenItem.Attributes.Token["freezePoint"] = freezePoint;
@@ -118,7 +116,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             nonFrozenItem.TransitionableProps = nonFrozenItem.TransitionableProps.Prepend(new TransitionableProperties
             {
-                Type = EBrainFreezeTransitionType.Freeze.ConvertToFake(),
+                Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value,
                 FreshHours = NatFloat.Zero,
                 TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
                 TransitionRatio = 1,
@@ -134,7 +132,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
 
             frozenItem.TransitionableProps = frozenItem.TransitionableProps.Prepend(new TransitionableProperties
             {
-                Type = EBrainFreezeTransitionType.Thaw.ConvertToFake(),
+                Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value,
                 FreshHours = NatFloat.Zero,
                 TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
                 TransitionRatio = 1,
@@ -207,10 +205,11 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 }
             }
 
+            var thawTrans = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value;
             //Fix transitions
             if (frozenItem.TransitionableProps != null)
             {
-                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != EBrainFreezeTransitionType.Thaw.ConvertToFake()))
+                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != thawTrans))
                 {
                     var code = transition.TransitionedStack?.Code?.ToString();
                     if (code != null)
