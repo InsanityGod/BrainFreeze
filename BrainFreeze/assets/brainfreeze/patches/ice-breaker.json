@@ -5,7 +5,7 @@
     "path": "/behaviors",
     "value": [
       {
-        "name": "brainfreeze:icebreakertool"
+        "name": "brainfreeze:IceBreakerTool"
       }
     ]
   }

@@ -21,7 +21,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions
         {
             var codes = instructions.ToList();
             var target = AccessTools.Method(typeof(Entity), nameof(Entity.ReceiveDamage));
-            var configCall = AccessTools.PropertyGetter(typeof(BrainFreezeModSystem), nameof(BrainFreezeConfig.Instance));
+            var configCall = AccessTools.PropertyGetter(typeof(BrainFreezeConfig), nameof(BrainFreezeConfig.Instance));
             var freezeDamageCall = AccessTools.PropertyGetter(typeof(BrainFreezeConfig), nameof(BrainFreezeConfig.FreezingDamage));
             for (var i = 0; i < codes.Count; i++)
             {

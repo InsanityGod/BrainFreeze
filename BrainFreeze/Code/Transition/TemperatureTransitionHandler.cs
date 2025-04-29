@@ -34,13 +34,11 @@ namespace BrainFreeze.Code.Transition
             if(pos == null) return multiplier;
             if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
 
-            var freezingPoint = GetFreezingPoint(inSlot); // 0
-            var temperature = GetTemperatureAtPos(world, inSlot, pos); //33
-            var diffMult = Math.Abs(temperature - freezingPoint) / 5; // 33 /5 = 6.5
+            var freezingPoint = GetFreezingPoint(inSlot);
+            var temperature = GetTemperatureAtPos(world, inSlot, pos);
+            var diffMult = Math.Abs(temperature - freezingPoint) / 5;
 
-            // 33 => 0 ? 6.5 : -6.5
             if (Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
-            // 33 <= 0 ? 6.5 : -6.5
             return temperature <= freezingPoint ? diffMult : -diffMult;
         }
 

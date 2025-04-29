@@ -4,7 +4,7 @@
   "shape": {
     "base": "item/ice/icecubes"
   },
-  "class": "brainfreeze:ice",
+  "class": "brainfreeze:Ice", 
   "attributes": {
     "ConsumptionTemperaturePenalty": -2
   },
