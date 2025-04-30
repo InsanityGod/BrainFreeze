@@ -154,7 +154,8 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 {
                     Base = new AssetLocation("game:block/liquid/ice/lake1")
                 }
-            };
+            }; 
+            //TODO if the base texture is not 32x32 this is ignored and gives warning, add extra handling for this
 
             var firstTexture = frozenItem.FirstTexture;
             if (firstTexture != null)
@@ -205,7 +206,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
                 }
             }
 
-            var thawTrans = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value;
+            var thawTrans = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value;
             //Fix transitions
             if (frozenItem.TransitionableProps != null)
             {
