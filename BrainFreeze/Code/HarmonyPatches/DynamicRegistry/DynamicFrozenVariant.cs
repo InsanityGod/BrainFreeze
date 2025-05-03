@@ -26,7 +26,7 @@ namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
         [HarmonyPostfix]
         public static void CreateBasetypePostfix(RegistryObjectType __instance)
         {
-            if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint) && !BrainFreezeConfig.Instance.SuperBrainFreeze) return;
+            if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint)) return;
 
             __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
 

@@ -15,6 +15,8 @@ namespace BrainFreeze.Code.Behaviors
 
         public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handHandling, ref EnumHandling handling)
         {
+            if(blockSel == null) return;
+
             var world = byEntity.Api.World;
             if (byEntity.Api.Side == EnumAppSide.Server && blockSel.Block == null)
             {

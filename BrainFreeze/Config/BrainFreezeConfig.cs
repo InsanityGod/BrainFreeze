@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Vintagestory.API.Common;
 
 namespace BrainFreeze.Config
 {
@@ -11,7 +12,7 @@ namespace BrainFreeze.Config
         public static BrainFreezeConfig Instance { get; private set; }
 
         /// <summary>
-        /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now)
+        /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now).
         /// </summary>
         public Dictionary<string, float> AutoRegFrozenVariants { get; set; } = new Dictionary<string, float>()
         {
@@ -47,28 +48,21 @@ namespace BrainFreeze.Config
                 {"yeastwaterportion",    -3f},
                 {"breadstarter",         -3f},
                 {"bloodportion",         -2f},
-                //foodoilportion        // depends on oil type
-                //Syrup maybe?          // -11c
-                //brine                 // -1c (remember to mess with pickling as well :3)
         };
 
-        /// <summary>
-        /// Limits? what are those?
-        /// </summary>
-        [DefaultValue(false)]
-        public bool SuperBrainFreeze { get; set; } = false;
+        //TODO public Dictionary<EnumTransitionType, float> FrozenTransitionSpeedMultiplier
 
         /// <summary>
-        /// How much damage is taken every time you take damage from freezing
+        /// How much damage is taken every time you take damage from freezing.
+        /// Base game value is 0.2
         /// </summary>
         [Category("Cold Penalties")]
         [Range(0, float.PositiveInfinity)]
         [DefaultValue(1f)]
         public float FreezingDamage { get; set; } = 1f;
 
-
         /// <summary>
-        /// How much you can be slowed down when you are frozen
+        /// How much you can be slowed down when you are frozen.
         /// </summary>
         [Category("Cold Penalties")]
         [DisplayFormat(DataFormatString = "P")]
