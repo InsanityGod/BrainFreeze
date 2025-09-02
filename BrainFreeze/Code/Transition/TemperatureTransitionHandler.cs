@@ -1,5 +1,4 @@
 ﻿using InsanityLib.Handlers;
-using Newtonsoft.Json.Linq;
 using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -7,142 +6,141 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
-namespace BrainFreeze.Code.Transition
+namespace BrainFreeze.Code.Transition;
+
+public class TemperatureTransitionHandler : TransitionHandler
 {
-    public class TemperatureTransitionHandler : TransitionHandler
+    public bool Invert { get; private set; }
+    
+    public override void LoadAttributes(JsonObject attributes)
     {
-        public bool Invert { get; private set; }
+        if(attributes == null) return;
+        Invert = attributes["Invert"].AsBool(Invert);
+    }
+
+    public const float DefaultFreezePoint = 0;
+    public static float GetFreezingPoint(ItemSlot slot)
+    {
+        var attr = slot.Itemstack?.Collectible.Attributes;
+        return attr != null ? attr["freezePoint"].AsFloat() : DefaultFreezePoint;
+    }
+
+    public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, float currentResult)
+    {
+        float multiplier = 0;
+
+        var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
+        if(pos == null) return multiplier;
+        if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
+
+        var freezingPoint = GetFreezingPoint(inSlot);
+        var temperature = GetTemperatureAtPos(world, inSlot, pos);
+        var diffMult = Math.Abs(temperature - freezingPoint) / 5;
+
+        if (Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
+        return temperature <= freezingPoint ? diffMult : -diffMult;
+    }
+
+    //inSlot is just here to make hooking into this with harmony patches is easier (in case you want to make special inventory slots with heating properties)
+    public static float GetTemperatureAtPos(IWorldAccessor world, ItemSlot inSlot, BlockPos pos)
+    {
+        var entityAtPos = world.BlockAccessor.GetBlockEntity(pos);
+        if(entityAtPos is IFirePit firePit && firePit.IsBurning) return 160;
+
+        var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
+        if(climate.Temperature < 10)
+        {
+            var room = world.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
         
-        public override void LoadAttributes(JsonObject attributes)
-        {
-            if(attributes == null) return;
-            Invert = attributes["Invert"].AsBool(Invert);
+            if(room.ExitCount == 0) return 10; //TODO compat for a mod I intend to make in the future
         }
+        
+        return climate.Temperature;
+    }
 
-        public const float DefaultFreezePoint = 0;
-        public static float GetFreezingPoint(ItemSlot slot)
+    public override void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props,  ref ItemStack result)
+    {
+        //TODO: I wish there was a better way to do this...
+        if (result.Collectible?.MatterState == EnumMatterState.Liquid)
         {
-            var attr = slot.Itemstack?.Collectible.Attributes;
-            return attr != null ? attr["freezePoint"].AsFloat() : DefaultFreezePoint;
-        }
-
-        public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, float currentResult)
-        {
-            float multiplier = 0;
-
-            var pos = inSlot.Inventory?.Pos ?? (inSlot.Inventory as InventoryBasePlayer)?.Player.Entity.Pos.AsBlockPos;
-            if(pos == null) return multiplier;
-            if (!world.BlockAccessor.IsValidPos(pos)) return multiplier; //TODO maybe add logging
-
-            var freezingPoint = GetFreezingPoint(inSlot);
-            var temperature = GetTemperatureAtPos(world, inSlot, pos);
-            var diffMult = Math.Abs(temperature - freezingPoint) / 5;
-
-            if (Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
-            return temperature <= freezingPoint ? diffMult : -diffMult;
-        }
-
-        //inSlot is just here to make hooking into this with harmony patches is easier (in case you want to make special inventory slots with heating properties)
-        public static float GetTemperatureAtPos(IWorldAccessor world, ItemSlot inSlot, BlockPos pos)
-        {
-            var entityAtPos = world.BlockAccessor.GetBlockEntity(pos);
-            if(entityAtPos is IFirePit firePit && firePit.IsBurning) return 160;
-
-            var climate = world.BlockAccessor.GetClimateAt(pos, EnumGetClimateMode.NowValues);
-            if(climate.Temperature < 10)
+            var wasLocked = slot.Inventory?.TakeLocked;
+            if (slot.Inventory != null)
             {
-                var room = world.Api.ModLoader.GetModSystem<RoomRegistry>().GetRoomForPosition(pos);
-            
-                if(room.ExitCount == 0) return 10; //TODO compat for a mod I intend to make in the future
+                slot.Inventory.TakeLocked = false;
             }
-            
-            return climate.Temperature;
-        }
 
-        public override void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props,  ref ItemStack result)
-        {
-            //TODO: I wish there was a better way to do this...
-            if (result.Collectible?.MatterState == EnumMatterState.Liquid)
+            //Some code to preserve transition states //TODO see if we can do this in a cleaner way
+            if (result.Collectible.TransitionableProps != null && slot.Inventory.Api != null)
             {
-                var wasLocked = slot.Inventory?.TakeLocked;
-                if (slot.Inventory != null)
+                var transitionState = ((ITreeAttribute)slot.Itemstack.Attributes["transitionstate"]).Clone();
+                var freshHours = (transitionState["freshHours"] as FloatArrayAttribute).value;
+                var transitionHours = (transitionState["transitionHours"] as FloatArrayAttribute).value;
+                var transitionedHours = (transitionState["transitionedHours"] as FloatArrayAttribute).value;
+
+                var len = result.Collectible.TransitionableProps.Length;
+                float[] newFreshHours = new float[len];
+                float[] newTransitionHours = new float[len];
+                float[] newTransitionedHours = new float[len];
+
+                var api = slot.Inventory.Api;
+                for (int i = 0; i < len; i++)
                 {
-                    slot.Inventory.TakeLocked = false;
-                }
-
-                //Some code to preserve transition states //TODO see if we can do this in a cleaner way
-                if (result.Collectible.TransitionableProps != null && slot.Inventory.Api != null)
-                {
-                    var transitionState = ((ITreeAttribute)slot.Itemstack.Attributes["transitionstate"]).Clone();
-                    var freshHours = (transitionState["freshHours"] as FloatArrayAttribute).value;
-                    var transitionHours = (transitionState["transitionHours"] as FloatArrayAttribute).value;
-                    var transitionedHours = (transitionState["transitionedHours"] as FloatArrayAttribute).value;
-
-                    var len = result.Collectible.TransitionableProps.Length;
-                    float[] newFreshHours = new float[len];
-                    float[] newTransitionHours = new float[len];
-                    float[] newTransitionedHours = new float[len];
-
-                    var api = slot.Inventory.Api;
-                    for (int i = 0; i < len; i++)
+                    var newProp = result.Collectible.TransitionableProps[i];
+                    var existingIndex = collectible.TransitionableProps.IndexOf(existingProp => existingProp.Type == newProp.Type);
+                    if (existingIndex == -1)
                     {
-                        var newProp = result.Collectible.TransitionableProps[i];
-                        var existingIndex = collectible.TransitionableProps.IndexOf(existingProp => existingProp.Type == newProp.Type);
-                        if (existingIndex == -1)
-                        {
-                            newFreshHours[i] = newProp.FreshHours.nextFloat(1, api.World.Rand);
-                            newTransitionHours[i] = newProp.TransitionHours.nextFloat(1, api.World.Rand);
-                            continue;
-                        }
-
-                        newFreshHours[i] = freshHours[existingIndex];
-                        newTransitionHours[i] = transitionHours[existingIndex];
-                        newTransitionedHours[i] = transitionedHours[existingIndex];
+                        newFreshHours[i] = newProp.FreshHours.nextFloat(1, api.World.Rand);
+                        newTransitionHours[i] = newProp.TransitionHours.nextFloat(1, api.World.Rand);
+                        continue;
                     }
 
-                    transitionState["freshHours"] = new FloatArrayAttribute(newFreshHours);
-                    transitionState["transitionHours"] = new FloatArrayAttribute(newTransitionHours);
-                    transitionState["transitionedHours"] = new FloatArrayAttribute(newTransitionedHours);
-
-                    result.Attributes["transitionstate"] = transitionState;
+                    newFreshHours[i] = freshHours[existingIndex];
+                    newTransitionHours[i] = transitionHours[existingIndex];
+                    newTransitionedHours[i] = transitionedHours[existingIndex];
                 }
 
-                HandleLiquidTransitionResult(slot, ref result);
+                transitionState["freshHours"] = new FloatArrayAttribute(newFreshHours);
+                transitionState["transitionHours"] = new FloatArrayAttribute(newTransitionHours);
+                transitionState["transitionedHours"] = new FloatArrayAttribute(newTransitionedHours);
 
-                if (slot.Inventory != null)
-                {
-                    slot.Inventory.TakeLocked = wasLocked.Value;
-                }
+                result.Attributes["transitionstate"] = transitionState;
             }
 
-            if(slot.Inventory?.Pos != null)
+            HandleLiquidTransitionResult(slot, ref result);
+
+            if (slot.Inventory != null)
             {
-                //HACK: workaround for GroundStoreAble not updating correctly for some reason
-                slot.Inventory.Api?.World.BlockAccessor.GetBlockEntity(slot.Inventory.Pos)?.MarkDirty();
+                slot.Inventory.TakeLocked = wasLocked.Value;
             }
         }
 
-        public static void HandleLiquidTransitionResult(ItemSlot slot, ref ItemStack result)
+        if(slot.Inventory?.Pos != null)
         {
-            slot.Itemstack = result;
-            if(result.Collectible.MatterState != EnumMatterState.Liquid) return;
-            var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
-            if (slot is not DummySlot && slot.CanTake() && pos != null)
+            //HACK: workaround for GroundStoreAble not updating correctly for some reason
+            slot.Inventory.Api?.World.BlockAccessor.GetBlockEntity(slot.Inventory.Pos)?.MarkDirty();
+        }
+    }
+
+    public static void HandleLiquidTransitionResult(ItemSlot slot, ref ItemStack result)
+    {
+        slot.Itemstack = result;
+        if(result.Collectible.MatterState != EnumMatterState.Liquid) return;
+        var pos = slot.Inventory is InventoryBasePlayer playerInv ? playerInv.Player.Entity.Pos.AsBlockPos : slot.Inventory?.Pos;
+        if (slot is not DummySlot && slot.CanTake() && pos != null)
+        {
+            if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
             {
-                if (slot.Inventory.Api.World.BlockAccessor.GetBlock(pos) is BlockLiquidContainerBase liquidContainer)
-                {
-                    liquidContainer.SetContent(pos, result);
-                }
-                else
-                {
-                    slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
-                    result.StackSize = 0;
-                }
-                if (slot.Inventory is InventoryBasePlayer)
-                {
-                    //Edge case handling for ice cubes
-                    result.StackSize = 0;
-                }
+                liquidContainer.SetContent(pos, result);
+            }
+            else
+            {
+                slot.Inventory.Api.World.PlaySoundAt(new AssetLocation("sounds/environment/smallsplash"), pos.X, pos.Y, pos.Z);
+                result.StackSize = 0;
+            }
+            if (slot.Inventory is InventoryBasePlayer)
+            {
+                //Edge case handling for ice cubes
+                result.StackSize = 0;
             }
         }
     }

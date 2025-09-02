@@ -14,254 +14,253 @@ using Vintagestory.API.Util;
 using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
-namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry
+namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
+
+//Just pretend you didn't see this class
+[HarmonyPatch(typeof(RegistryObjectType))]
+public static class DynamicFrozenVariant //TODO cleanup
 {
-    //Just pretend you didn't see this class
-    [HarmonyPatch(typeof(RegistryObjectType))]
-    public static class DynamicFrozenVariant //TODO cleanup
+    public const string LoggingKey = "BrainFreezeAutoRegistry";
+
+    [HarmonyPatch("CreateBasetype")]
+    [HarmonyPostfix]
+    public static void CreateBasetypePostfix(RegistryObjectType __instance)
     {
-        public const string LoggingKey = "BrainFreezeAutoRegistry";
+        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint)) return;
 
-        [HarmonyPatch("CreateBasetype")]
-        [HarmonyPostfix]
-        public static void CreateBasetypePostfix(RegistryObjectType __instance)
+        __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
+
+        if (__instance.VariantGroups.Length == 1)
         {
-            if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint)) return;
-
-            __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
-
-            if (__instance.VariantGroups.Length == 1)
+            var variant = __instance.VariantGroups[0];
+            __instance.VariantGroups = __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
             {
-                var variant = __instance.VariantGroups[0];
-                __instance.VariantGroups = __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
-                {
-                    Code = variant.Code,
-                    Combine = EnumCombination.Add,
-                    LoadFromProperties = variant.LoadFromProperties,
-                    States = variant.States,
-                    IsValue = variant.IsValue,
-                    LoadFromPropertiesCombine = variant.LoadFromPropertiesCombine,
-                    OnVariant = variant.OnVariant,
-                }).ToArray();
+                Code = variant.Code,
+                Combine = EnumCombination.Add,
+                LoadFromProperties = variant.LoadFromProperties,
+                States = variant.States,
+                IsValue = variant.IsValue,
+                LoadFromPropertiesCombine = variant.LoadFromPropertiesCombine,
+                OnVariant = variant.OnVariant,
+            }).ToArray();
+        }
+        else if (__instance.VariantGroups.Length > 1)
+        {
+            //TODO this is too complex for now so ignore it
+            return;
+        }
+
+        var newVariant = new RegistryObjectVariantGroup
+        {
+            Code = "brainfreeze",
+            States = new string[] { "brainfreeze" },
+            Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
+        };
+        __instance.VariantGroups = __instance.VariantGroups.Append(newVariant);
+        if (__instance.SkipVariants != null)
+        {
+            var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-brainfreeze")).ToArray();
+            __instance.SkipVariants = __instance.SkipVariants.Append(skippedFrozen).ToArray();
+        }
+    }
+
+    [HarmonyPatch("solveByType")]
+    [HarmonyPrefix]
+    public static void SolveByTypePrefix(ref string codePath)
+    {
+        if (codePath.EndsWith("-brainfreeze"))
+        {
+            codePath = codePath[..^12]; //12 is the length of "-brainfreeze"
+        }
+    }
+
+    public static void FinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
+    {
+        //frozenItem.MatterState = EnumMatterState.Solid; //Technically it should be solid but this causes issues for item moving
+        frozenItem.CollectibleBehaviors ??= Array.Empty<CollectibleBehavior>();
+
+        var frozenPrefix = new FrozenNamePrefix(frozenItem);
+        frozenItem.CollectibleBehaviors = frozenItem.CollectibleBehaviors.Append(frozenPrefix);
+        frozenPrefix.OnLoaded(api);
+
+        var nonFrozenItem = api.World.GetItem(new AssetLocation(frozenItem.CodeWithoutFrozenPart()));
+        if (nonFrozenItem == null)
+        {
+            api.Logger.Warning("Could not find {0} for auto frozen variant registry (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
+            return;
+        }
+
+        frozenItem.Attributes ??= new JsonObject(new JObject());
+        nonFrozenItem.Attributes ??= new JsonObject(new JObject());
+
+        BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(nonFrozenItem.Code.Path.Split('-')[0], out float freezePoint);
+
+        frozenItem.Attributes.Token["freezePoint"] = freezePoint;
+        nonFrozenItem.Attributes.Token["freezePoint"] = freezePoint;
+
+        //Copy hydration values
+        if(nonFrozenItem.Attributes["hydration"].Exists)
+        {
+            frozenItem.Attributes.Token["hydration"] = nonFrozenItem.Attributes["hydration"].Token.DeepClone();
+        }
+
+        nonFrozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
+        frozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
+
+        var itemStack = new JsonItemStack
+        {
+            Code = frozenItem.Code,
+            Type = EnumItemClass.Item
+        };
+        itemStack.Resolve(api.World, LoggingKey);
+
+        nonFrozenItem.TransitionableProps = nonFrozenItem.TransitionableProps.Prepend(new TransitionableProperties
+        {
+            Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value,
+            FreshHours = NatFloat.Zero,
+            TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
+            TransitionRatio = 1,
+            TransitionedStack = itemStack,
+        }).ToArray();
+
+        itemStack = new JsonItemStack
+        {
+            Code = nonFrozenItem.Code,
+            Type = EnumItemClass.Item
+        };
+        itemStack.Resolve(api.World, LoggingKey);
+
+        frozenItem.TransitionableProps = frozenItem.TransitionableProps.Prepend(new TransitionableProperties
+        {
+            Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value,
+            FreshHours = NatFloat.Zero,
+            TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
+            TransitionRatio = 1,
+            TransitionedStack = itemStack,
+        }).ToArray();
+
+        var inContainerProps = (JContainer)frozenItem.Attributes["waterTightContainerProps"].Token;
+        inContainerProps ??= (JContainer)nonFrozenItem.Attributes["waterTightContainerProps"].Token?.DeepClone();
+
+        if(inContainerProps != null)
+        {
+            inContainerProps["AllowSpill"] = false;
+        }
+        else api.Logger.Warning("waterTightContainerProps where not defined for {0}, is this really a liquid?? (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
+
+        var blendedOverlays = new BlendedOverlayTexture[]
+        {
+            new()
+            {
+                Base = new AssetLocation("game:block/liquid/ice/lake1")
             }
-            else if (__instance.VariantGroups.Length > 1)
-            {
-                //TODO this is too complex for now so ignore it
-                return;
-            }
+        }; 
+        //TODO if the base texture is not 32x32 this is ignored and gives warning, add extra handling for this
 
-            var newVariant = new RegistryObjectVariantGroup
+        var firstTexture = frozenItem.FirstTexture;
+        if (firstTexture != null)
+        {
+
+            if (firstTexture.Base.ToString() == "game:block/liquid/waterportion")
             {
-                Code = "brainfreeze",
-                States = new string[] { "brainfreeze" },
-                Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
-            };
-            __instance.VariantGroups = __instance.VariantGroups.Append(newVariant);
-            if (__instance.SkipVariants != null)
+                firstTexture.Base = new AssetLocation("game:block/liquid/ice/lake1");
+            }
+            else
             {
-                var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-brainfreeze")).ToArray();
-                __instance.SkipVariants = __instance.SkipVariants.Append(skippedFrozen).ToArray();
+                firstTexture.BlendedOverlays = blendedOverlays;
             }
         }
 
-        [HarmonyPatch("solveByType")]
-        [HarmonyPrefix]
-        public static void SolveByTypePrefix(ref string codePath)
+        if(inContainerProps != null)
         {
-            if (codePath.EndsWith("-brainfreeze"))
+            var inContainerTextureStr = inContainerProps["texture"]["base"].ToString();
+            if (inContainerTextureStr == "block/liquid/waterportion" || inContainerTextureStr == "game:block/liquid/waterportion")
             {
-                codePath = codePath[..^12]; //12 is the length of "-brainfreeze"
+                inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
+            }
+            else
+            {
+                inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
             }
         }
 
-        public static void FinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
+        if(frozenItem.CreativeInventoryStacks != null)
         {
-            //frozenItem.MatterState = EnumMatterState.Solid; //Technically it should be solid but this causes issues for item moving
-            frozenItem.CollectibleBehaviors ??= Array.Empty<CollectibleBehavior>();
-
-            var frozenPrefix = new FrozenNamePrefix(frozenItem);
-            frozenItem.CollectibleBehaviors = frozenItem.CollectibleBehaviors.Append(frozenPrefix);
-            frozenPrefix.OnLoaded(api);
-
-            var nonFrozenItem = api.World.GetItem(new AssetLocation(frozenItem.CodeWithoutFrozenPart()));
-            if (nonFrozenItem == null)
+            foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
+                .Where(stack => stack.Attributes != null)
+                .SelectMany(stack => stack.Attributes["ucontents"].AsArray()))
             {
-                api.Logger.Warning("Could not find {0} for auto frozen variant registry (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
-                return;
+                //Fix code reference to frozen variant
+                content.Token["code"] = content["code"].AsString().Replace(nonFrozenItem.Code.Path, frozenItem.Code.Path);
             }
 
-            frozenItem.Attributes ??= new JsonObject(new JObject());
-            nonFrozenItem.Attributes ??= new JsonObject(new JObject());
-
-            BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(nonFrozenItem.Code.Path.Split('-')[0], out float freezePoint);
-
-            frozenItem.Attributes.Token["freezePoint"] = freezePoint;
-            nonFrozenItem.Attributes.Token["freezePoint"] = freezePoint;
-
-            //Copy hydration values
-            if(nonFrozenItem.Attributes["hydration"].Exists)
+            foreach (var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
             {
-                frozenItem.Attributes.Token["hydration"] = nonFrozenItem.Attributes["hydration"].Token.DeepClone();
+                //resolve fixed variant
+                item.Resolve(api.World, LoggingKey);
             }
 
-            nonFrozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
-            frozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
-
-            var itemStack = new JsonItemStack
+            foreach(var creativeStack in frozenItem.CreativeInventoryStacks)
             {
-                Code = frozenItem.Code,
-                Type = EnumItemClass.Item
-            };
-            itemStack.Resolve(api.World, LoggingKey);
-
-            nonFrozenItem.TransitionableProps = nonFrozenItem.TransitionableProps.Prepend(new TransitionableProperties
-            {
-                Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value,
-                FreshHours = NatFloat.Zero,
-                TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
-                TransitionRatio = 1,
-                TransitionedStack = itemStack,
-            }).ToArray();
-
-            itemStack = new JsonItemStack
-            {
-                Code = nonFrozenItem.Code,
-                Type = EnumItemClass.Item
-            };
-            itemStack.Resolve(api.World, LoggingKey);
-
-            frozenItem.TransitionableProps = frozenItem.TransitionableProps.Prepend(new TransitionableProperties
-            {
-                Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value,
-                FreshHours = NatFloat.Zero,
-                TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
-                TransitionRatio = 1,
-                TransitionedStack = itemStack,
-            }).ToArray();
-
-            var inContainerProps = (JContainer)frozenItem.Attributes["waterTightContainerProps"].Token;
-            inContainerProps ??= (JContainer)nonFrozenItem.Attributes["waterTightContainerProps"].Token?.DeepClone();
-
-            if(inContainerProps != null)
-            {
-                inContainerProps["AllowSpill"] = false;
+                creativeStack.Tabs = creativeStack.Tabs.Append("brainfreeze");
             }
-            else api.Logger.Warning("waterTightContainerProps where not defined for {0}, is this really a liquid?? (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
+        }
 
-            var blendedOverlays = new BlendedOverlayTexture[]
+        var thawTrans = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value;
+        //Fix transitions
+        if (frozenItem.TransitionableProps != null)
+        {
+            foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != thawTrans))
             {
-                new()
+                var code = transition.TransitionedStack?.Code?.ToString();
+                if (code != null)
                 {
-                    Base = new AssetLocation("game:block/liquid/ice/lake1")
-                }
-            }; 
-            //TODO if the base texture is not 32x32 this is ignored and gives warning, add extra handling for this
-
-            var firstTexture = frozenItem.FirstTexture;
-            if (firstTexture != null)
-            {
-
-                if (firstTexture.Base.ToString() == "game:block/liquid/waterportion")
-                {
-                    firstTexture.Base = new AssetLocation("game:block/liquid/ice/lake1");
-                }
-                else
-                {
-                    firstTexture.BlendedOverlays = blendedOverlays;
-                }
-            }
-
-            if(inContainerProps != null)
-            {
-                var inContainerTextureStr = inContainerProps["texture"]["base"].ToString();
-                if (inContainerTextureStr == "block/liquid/waterportion" || inContainerTextureStr == "game:block/liquid/waterportion")
-                {
-                    inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
-                }
-                else
-                {
-                    inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
-                }
-            }
-
-            if(frozenItem.CreativeInventoryStacks != null)
-            {
-                foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
-                    .Where(stack => stack.Attributes != null)
-                    .SelectMany(stack => stack.Attributes["ucontents"].AsArray()))
-                {
-                    //Fix code reference to frozen variant
-                    content.Token["code"] = content["code"].AsString().Replace(nonFrozenItem.Code.Path, frozenItem.Code.Path);
-                }
-
-                foreach (var item in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks))
-                {
-                    //resolve fixed variant
-                    item.Resolve(api.World, LoggingKey);
-                }
-
-                foreach(var creativeStack in frozenItem.CreativeInventoryStacks)
-                {
-                    creativeStack.Tabs = creativeStack.Tabs.Append("brainfreeze");
-                }
-            }
-
-            var thawTrans = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value;
-            //Fix transitions
-            if (frozenItem.TransitionableProps != null)
-            {
-                foreach (var transition in frozenItem.TransitionableProps.Where(trans => trans.Type != thawTrans))
-                {
-                    var code = transition.TransitionedStack?.Code?.ToString();
-                    if (code != null)
+                    var frozenAssetLocation = new AssetLocation($"{code}-brainfreeze");
+                    if (api.World.GetItem(frozenAssetLocation) != null)
                     {
-                        var frozenAssetLocation = new AssetLocation($"{code}-brainfreeze");
-                        if (api.World.GetItem(frozenAssetLocation) != null)
-                        {
-                            transition.TransitionedStack.Code = frozenAssetLocation;
-                            transition.TransitionedStack.Resolve(api.World, LoggingKey);
-                        }
+                        transition.TransitionedStack.Code = frozenAssetLocation;
+                        transition.TransitionedStack.Resolve(api.World, LoggingKey);
                     }
                 }
             }
         }
+    }
 
-        public static void FinalizeIceCube(ICoreAPI api)
+    public static void FinalizeIceCube(ICoreAPI api)
+    {
+        var iceCube = api.World.GetItem(new AssetLocation("brainfreeze:icecubes"));
+        
+        var creativeStacks = new List<CreativeTabAndStackList>();
+        foreach(var item in api.World.Items.Where(item => item.Variant != null && item.Variant["brainfreeze"] != null))
         {
-            var iceCube = api.World.GetItem(new AssetLocation("brainfreeze:icecubes"));
+            var ingredient = new ItemStack(item);
+            var tree = new TreeAttribute();
+            tree.SetItemstack("IceCubeIngredient", ingredient);
+
+            var attr = new JsonObject(new JObject());
+            attr.Token["CreativeIngredientId"] = JToken.FromObject(item.Id);
             
-            var creativeStacks = new List<CreativeTabAndStackList>();
-            foreach(var item in api.World.Items.Where(item => item.Variant != null && item.Variant["brainfreeze"] != null))
+            var stack = new CreativeTabAndStackList
             {
-                var ingredient = new ItemStack(item);
-                var tree = new TreeAttribute();
-                tree.SetItemstack("IceCubeIngredient", ingredient);
-
-                var attr = new JsonObject(new JObject());
-                attr.Token["CreativeIngredientId"] = JToken.FromObject(item.Id);
-                
-                var stack = new CreativeTabAndStackList
+                Tabs = new string[] { "general", "items", "brainfreeze" },
+                Stacks = new JsonItemStack[]
                 {
-                    Tabs = new string[] { "general", "items", "brainfreeze" },
-                    Stacks = new JsonItemStack[]
+                    new()
                     {
-                        new()
-                        {
-                            Code = iceCube.Code,
-                            Type = EnumItemClass.Item,
-                            Attributes = attr
-                        }
+                        Code = iceCube.Code,
+                        Type = EnumItemClass.Item,
+                        Attributes = attr
                     }
-                };
-
-                foreach(var toResolve in stack.Stacks)
-                {
-                    toResolve.Resolve(api.World, LoggingKey);
                 }
+            };
 
-                creativeStacks.Add(stack);
+            foreach(var toResolve in stack.Stacks)
+            {
+                toResolve.Resolve(api.World, LoggingKey);
             }
-            iceCube.CreativeInventoryStacks = creativeStacks.ToArray();
+
+            creativeStacks.Add(stack);
         }
+        iceCube.CreativeInventoryStacks = creativeStacks.ToArray();
     }
 }

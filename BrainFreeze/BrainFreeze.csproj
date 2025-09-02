@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Reference Include="HydrateOrDiedrate">
-      <HintPath>..\..\Dep\hydrateordiedrate_1.7.1\HydrateOrDiedrate.dll</HintPath>
+      <HintPath>..\..\HydrateOrDiedrate\HydrateOrDiedrate\bin\Debug\Mods\mod\HydrateOrDiedrate.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="InsanityLib">
