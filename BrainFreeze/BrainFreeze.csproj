@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="CustomTransitionLib">
-      <HintPath>..\..\CustomTransitionLib\bin\Debug\Mods\mod\CustomTransitionLib.dll</HintPath>
+    <Reference Include="HydrateOrDiedrate">
+      <HintPath>..\..\HydrateOrDiedrate\HydrateOrDiedrate\bin\Debug\Mods\mod\HydrateOrDiedrate.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="HydrateOrDiedrate">
-      <HintPath>..\..\Dep\hydrateordiedrate_1.7.1\HydrateOrDiedrate.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="InsanityLib">
+      <HintPath>..\..\InsanityLib\InsanityLib\bin\Debug\Mods\mod\InsanityLib.dll</HintPath>
+		<Private>False</Private>
     </Reference>
     <Reference Include="VintagestoryAPI">
       <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
@@ -68,11 +68,6 @@
   <Content Include="modicon.png">
   	<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
-</ItemGroup>
-
-<ItemGroup>
-  <Folder Include="assets\brainfreeze\compatibility\hydrateordiedrate\patches\" />
-  <Folder Include="assets\brainfreeze\shapes\food\" />
 </ItemGroup>
 
 </Project>
