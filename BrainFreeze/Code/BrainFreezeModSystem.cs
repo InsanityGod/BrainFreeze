@@ -25,11 +25,11 @@ public class BrainFreezeModSystem : ModSystem
 
         foreach (var item in api.World.Items)
         {
-            if (item.Variant["brainfreeze"] != null)
-            {
-                DynamicFrozenVariant.FinalizeFrozenCollectible(api, item);
-            }
+            if (item.Variant["brainfreeze"] is null) continue;
+
+            DynamicFrozenVariant.TryFinalizeFrozenCollectible(api, item);
         }
+
         DynamicFrozenVariant.FinalizeIceCube(api);
 
         if (api.ModLoader.IsModEnabled("hydrateordiedrate"))

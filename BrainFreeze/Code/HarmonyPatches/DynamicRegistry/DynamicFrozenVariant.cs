@@ -2,6 +2,7 @@
 using BrainFreeze.Config;
 using HarmonyLib;
 using InsanityLib.Util.ContentFeatures;
+using InsanityLib.Util.SpanUtil;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -24,16 +25,15 @@ public static class DynamicFrozenVariant //TODO cleanup
 
     [HarmonyPatch("CreateBasetype")]
     [HarmonyPostfix]
-    public static void CreateBasetypePostfix(RegistryObjectType __instance)
+    public static void CreateBasetypePostfix(ICoreAPI api, RegistryObjectType __instance)
     {
-        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.TryGetValue(__instance.Code.Path.Split('-')[0], out float freezePoint)) return;
-
-        __instance.VariantGroups ??= Array.Empty<RegistryObjectVariantGroup>();
+        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.ContainsKey(__instance.Code.Path.AsSpan().FirstCodePartAsSpan().ToString())) return;
+        __instance.VariantGroups ??= [];
 
         if (__instance.VariantGroups.Length == 1)
         {
             var variant = __instance.VariantGroups[0];
-            __instance.VariantGroups = __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
+            __instance.VariantGroups = [.. __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
             {
                 Code = variant.Code,
                 Combine = EnumCombination.Add,
@@ -42,26 +42,24 @@ public static class DynamicFrozenVariant //TODO cleanup
                 IsValue = variant.IsValue,
                 LoadFromPropertiesCombine = variant.LoadFromPropertiesCombine,
                 OnVariant = variant.OnVariant,
-            }).ToArray();
+            })];
         }
         else if (__instance.VariantGroups.Length > 1)
         {
             //TODO this is too complex for now so ignore it
+            //TODO create AdditiveMultiply combination move
             return;
         }
 
         var newVariant = new RegistryObjectVariantGroup
         {
             Code = "brainfreeze",
-            States = new string[] { "brainfreeze" },
+            States = ["brainfreeze"],
             Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
         };
-        __instance.VariantGroups = __instance.VariantGroups.Append(newVariant);
-        if (__instance.SkipVariants != null)
-        {
-            var skippedFrozen = __instance.SkipVariants.Select(variant => new AssetLocation($"{variant}-brainfreeze")).ToArray();
-            __instance.SkipVariants = __instance.SkipVariants.Append(skippedFrozen).ToArray();
-        }
+
+        __instance.VariantGroups = [..__instance.VariantGroups, newVariant];
+        if (__instance.SkipVariants is not null) __instance.SkipVariants = [.. __instance.SkipVariants, ..__instance.SkipVariants.Select(variant => new AssetLocation(variant.Domain, $"{variant.Path}-brainfreeze"))];
     }
 
     [HarmonyPatch("solveByType")]
@@ -74,20 +72,33 @@ public static class DynamicFrozenVariant //TODO cleanup
         }
     }
 
-    public static void FinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
+    public static bool TryFinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
+    {
+        try
+        {
+            return FinalizeFrozenCollectible(api, frozenItem);
+        }
+        catch(Exception ex)
+        {
+            api.Logger.Error("[brainfreeze] [{0}] Error during finalizing of frozen variant '{1}': {2}", frozenItem.Code.Domain, frozenItem.Code.Path, ex);
+            return false;
+        }
+    }
+
+    private static bool FinalizeFrozenCollectible(ICoreAPI api, Item frozenItem)
     {
         //frozenItem.MatterState = EnumMatterState.Solid; //Technically it should be solid but this causes issues for item moving
-        frozenItem.CollectibleBehaviors ??= Array.Empty<CollectibleBehavior>();
+        frozenItem.CollectibleBehaviors ??= [];
 
         var frozenPrefix = new FrozenNamePrefix(frozenItem);
         frozenItem.CollectibleBehaviors = frozenItem.CollectibleBehaviors.Append(frozenPrefix);
         frozenPrefix.OnLoaded(api);
-
-        var nonFrozenItem = api.World.GetItem(new AssetLocation(frozenItem.CodeWithoutFrozenPart()));
-        if (nonFrozenItem == null)
+        var tst = frozenItem.CodeWithoutFrozenPart();
+        var nonFrozenItem = api.World.GetItem(new AssetLocation(tst));
+        if (nonFrozenItem is null)
         {
-            api.Logger.Warning("Could not find {0} for auto frozen variant registry (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
-            return;
+            api.Logger.Warning("[BrainFreeze] Could not find {0} for auto frozen variant registry", frozenItem.CodeWithoutFrozenPart());
+            return false;
         }
 
         frozenItem.Attributes ??= new JsonObject(new JObject());
@@ -104,8 +115,8 @@ public static class DynamicFrozenVariant //TODO cleanup
             frozenItem.Attributes.Token["hydration"] = nonFrozenItem.Attributes["hydration"].Token.DeepClone();
         }
 
-        nonFrozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
-        frozenItem.TransitionableProps ??= Array.Empty<TransitionableProperties>();
+        nonFrozenItem.TransitionableProps ??= [];
+        frozenItem.TransitionableProps ??= [];
 
         var itemStack = new JsonItemStack
         {
@@ -114,14 +125,14 @@ public static class DynamicFrozenVariant //TODO cleanup
         };
         itemStack.Resolve(api.World, LoggingKey);
 
-        nonFrozenItem.TransitionableProps = nonFrozenItem.TransitionableProps.Prepend(new TransitionableProperties
+        nonFrozenItem.TransitionableProps = [new TransitionableProperties
         {
             Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:freeze").Value,
             FreshHours = NatFloat.Zero,
             TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
             TransitionRatio = 1,
             TransitionedStack = itemStack,
-        }).ToArray();
+        }, .. nonFrozenItem.TransitionableProps];
 
         itemStack = new JsonItemStack
         {
@@ -130,14 +141,14 @@ public static class DynamicFrozenVariant //TODO cleanup
         };
         itemStack.Resolve(api.World, LoggingKey);
 
-        frozenItem.TransitionableProps = frozenItem.TransitionableProps.Prepend(new TransitionableProperties
+        frozenItem.TransitionableProps = [.. frozenItem.TransitionableProps.Prepend(new TransitionableProperties
         {
             Type = (EnumTransitionType)CustomTransition.ExtendedEnum.FromString("brainfreeze:melt").Value,
             FreshHours = NatFloat.Zero,
             TransitionHours = new NatFloat(16, 0, EnumDistribution.UNIFORM),
             TransitionRatio = 1,
             TransitionedStack = itemStack,
-        }).ToArray();
+        })];
 
         var inContainerProps = (JContainer)frozenItem.Attributes["waterTightContainerProps"].Token;
         inContainerProps ??= (JContainer)nonFrozenItem.Attributes["waterTightContainerProps"].Token?.DeepClone();
@@ -224,6 +235,8 @@ public static class DynamicFrozenVariant //TODO cleanup
                 }
             }
         }
+
+        return true;
     }
 
     public static void FinalizeIceCube(ICoreAPI api)
@@ -261,6 +274,6 @@ public static class DynamicFrozenVariant //TODO cleanup
 
             creativeStacks.Add(stack);
         }
-        iceCube.CreativeInventoryStacks = creativeStacks.ToArray();
+        iceCube.CreativeInventoryStacks = [.. creativeStacks];
     }
 }

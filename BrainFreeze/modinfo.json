@@ -6,7 +6,7 @@
     "TheInsanityGod"
   ],
   "description": "The frozen world reimagined",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "dependencies": {
     "game": "",
     "insanitylib": ""
