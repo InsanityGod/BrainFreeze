@@ -2,69 +2,89 @@
 using BrainFreeze.Config;
 using HarmonyLib;
 using InsanityLib.Util.ContentFeatures;
-using InsanityLib.Util.SpanUtil;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
-using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
 namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
 
 //Just pretend you didn't see this class
-[HarmonyPatch(typeof(RegistryObjectType))]
+[HarmonyPatch]
 public static class DynamicFrozenVariant //TODO cleanup
 {
     public const string LoggingKey = "BrainFreezeAutoRegistry";
 
-    [HarmonyPatch("CreateBasetype")]
-    [HarmonyPostfix]
-    public static void CreateBasetypePostfix(ICoreAPI api, RegistryObjectType __instance)
+
+    [HarmonyPatch(typeof(ModRegistryObjectTypeLoader), "GatherVariants")]
+    [HarmonyTranspiler]
+    public static IEnumerable<CodeInstruction> AppendVariants(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
-        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.ContainsKey(__instance.Code.Path.AsSpan().FirstCodePartAsSpan().ToString())) return;
-        __instance.VariantGroups ??= [];
+        var matcher = new CodeMatcher(instructions, generator);
 
-        if (__instance.VariantGroups.Length == 1)
-        {
-            var variant = __instance.VariantGroups[0];
-            __instance.VariantGroups = [.. __instance.VariantGroups.Prepend(new RegistryObjectVariantGroup
-            {
-                Code = variant.Code,
-                Combine = EnumCombination.Add,
-                LoadFromProperties = variant.LoadFromProperties,
-                States = variant.States,
-                IsValue = variant.IsValue,
-                LoadFromPropertiesCombine = variant.LoadFromPropertiesCombine,
-                OnVariant = variant.OnVariant,
-            })];
-        }
-        else if (__instance.VariantGroups.Length > 1)
-        {
-            //TODO this is too complex for now so ignore it
-            //TODO create AdditiveMultiply combination move
-            return;
-        }
+        matcher.MatchEndForward(
+            CodeMatch.Calls(AccessTools.Method(typeof(ResolvedVariant), nameof(ResolvedVariant.ResolveCode)))
+        );
 
-        var newVariant = new RegistryObjectVariantGroup
-        {
-            Code = "brainfreeze",
-            States = ["brainfreeze"],
-            Combine = __instance.VariantGroups.Length == 0 ? EnumCombination.Add : EnumCombination.Multiply,
-        };
+        matcher.MatchEndForward(
+            new CodeMatch(OpCodes.Endfinally),
+            new CodeMatch()
+        );
 
-        __instance.VariantGroups = [..__instance.VariantGroups, newVariant];
-        if (__instance.SkipVariants is not null) __instance.SkipVariants = [.. __instance.SkipVariants, ..__instance.SkipVariants.Select(variant => new AssetLocation(variant.Domain, $"{variant.Path}-brainfreeze"))];
+        matcher.InsertAfter(
+            CodeInstruction.LoadArgument(1),
+            CodeInstruction.LoadLocal(0),
+            CodeInstruction.LoadArgument(4, true),
+            CodeInstruction.LoadArgument(5, true),
+            new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(DynamicFrozenVariant), nameof(AppendBrainFreeze)))
+        );
+
+        return matcher.InstructionEnumeration();
     }
 
-    [HarmonyPatch("solveByType")]
+    private static void AppendBrainFreeze(AssetLocation baseCode, List<ResolvedVariant> variantsFinal, ref AssetLocation[] allowedVariants, ref AssetLocation[] skipVariants)
+    {
+        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.ContainsKey(baseCode.Path)) return;
+
+        var originalLength = variantsFinal.Count;
+        for (int i = 0; i < originalLength; i++)
+        {
+            var newVariant = new ResolvedVariant
+            {
+                CodeParts = new(variantsFinal[i].CodeParts)
+            };
+            newVariant.AddCodePart("brainfreeze", "brainfreeze");
+            newVariant.ResolveCode(baseCode);
+            variantsFinal.Add(newVariant);
+        }
+
+        if(allowedVariants is not null)
+        {
+            allowedVariants = [
+                ..allowedVariants,
+                ..allowedVariants.Select(static existing => $"{existing}-brainfreeze")
+            ];
+        }
+
+        if(skipVariants is not null)
+        {
+            skipVariants = [
+                ..skipVariants,
+                ..skipVariants.Select(static existing => $"{existing}-brainfreeze")
+            ];
+        }
+    }
+
+    [HarmonyPatch(typeof(RegistryObjectType), "solveByType")]
     [HarmonyPrefix]
-    public static void SolveByTypePrefix(ref string codePath)
+    public static void MakeByTypeIgnoreBrainFreeze(ref string codePath)
     {
         if (codePath.EndsWith("-brainfreeze"))
         {
@@ -255,16 +275,16 @@ public static class DynamicFrozenVariant //TODO cleanup
             
             var stack = new CreativeTabAndStackList
             {
-                Tabs = new string[] { "general", "items", "brainfreeze" },
-                Stacks = new JsonItemStack[]
-                {
+                Tabs = ["general", "items", "brainfreeze"],
+                Stacks =
+                [
                     new()
                     {
                         Code = iceCube.Code,
                         Type = EnumItemClass.Item,
                         Attributes = attr
                     }
-                }
+                ]
             };
 
             foreach(var toResolve in stack.Stacks)

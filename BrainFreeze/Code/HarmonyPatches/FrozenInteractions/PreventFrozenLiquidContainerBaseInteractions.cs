@@ -11,7 +11,7 @@ namespace BrainFreeze.Code.HarmonyPatches.FrozenInteractions;
 [HarmonyPatch(typeof(BlockLiquidContainerBase))]
 public static class PreventFrozenLiquidContainerBaseInteractions
 {
-    [HarmonyPatch(nameof(BlockLiquidContainerBase.TryPutLiquid), argumentTypes: new Type[] { typeof(ItemStack), typeof(ItemStack), typeof(float) })]
+    [HarmonyPatch(nameof(BlockLiquidContainerBase.TryPutLiquid), argumentTypes: [typeof(ItemStack), typeof(ItemStack), typeof(float)])]
     [HarmonyPrefix]
     public static bool TryPutLiquidPrefix(BlockLiquidContainerBase __instance, ItemStack containerStack, ItemStack liquidStack, float desiredLitres, ref int __result)
     {

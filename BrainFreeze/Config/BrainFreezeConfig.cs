@@ -18,7 +18,6 @@ public class BrainFreezeConfig
             {"waterportion",         -0f },
             {"distilledwaterportion",-0f},
             {"rainwaterportion",     -0f},
-            {"wellwaterportion",     -0f},
             {"juiceportion",         -2f},
             {"vegetablejuiceportion",-2f},
             {"yogurt",               -3f},
