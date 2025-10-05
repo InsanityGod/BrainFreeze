@@ -2,6 +2,7 @@
 using BrainFreeze.Config;
 using HarmonyLib;
 using InsanityLib.Util.ContentFeatures;
+using InsanityLib.Util.SpanUtil;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
 namespace BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
@@ -22,6 +24,23 @@ public static class DynamicFrozenVariant //TODO cleanup
 {
     public const string LoggingKey = "BrainFreezeAutoRegistry";
 
+    [HarmonyPatch(typeof(RegistryObjectType), "CreateBasetype")]
+    [HarmonyPostfix]
+    public static void CreateBasetypePostfix(ICoreAPI api, RegistryObjectType __instance)
+    {
+        if(__instance.VariantGroups is not null && __instance.VariantGroups.Length > 0) return; //In this case we do it later
+        if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.ContainsKey(__instance.Code.Path.AsSpan().FirstCodePartAsSpan().ToString())) return;
+        __instance.VariantGroups = [
+            new RegistryObjectVariantGroup
+            {
+                Code = "brainfreeze",
+                States = ["brainfreeze"],
+                Combine = EnumCombination.Add,
+            }
+        ];
+
+        if (__instance.SkipVariants is not null) __instance.SkipVariants = [.. __instance.SkipVariants, ..__instance.SkipVariants.Select(variant => new AssetLocation(variant.Domain, $"{variant.Path}-brainfreeze"))];
+    }
 
     [HarmonyPatch(typeof(ModRegistryObjectTypeLoader), "GatherVariants")]
     [HarmonyTranspiler]
@@ -51,6 +70,7 @@ public static class DynamicFrozenVariant //TODO cleanup
 
     private static void AppendBrainFreeze(AssetLocation baseCode, List<ResolvedVariant> variantsFinal, ref AssetLocation[] allowedVariants, ref AssetLocation[] skipVariants)
     {
+        if(variantsFinal.Any(static final => final.CodeParts.ContainsKey("brainfreeze"))) return;
         if(!BrainFreezeConfig.Instance.AutoRegFrozenVariants.ContainsKey(baseCode.Path)) return;
 
         var originalLength = variantsFinal.Count;
