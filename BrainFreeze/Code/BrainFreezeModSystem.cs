@@ -1,5 +1,4 @@
-﻿using BrainFreeze.Code.Compatibility;
-using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
+﻿using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
 using InsanityLib.Attributes.Auto;
 using Vintagestory.API.Common;
 
@@ -32,14 +31,10 @@ public class BrainFreezeModSystem : ModSystem
 
         DynamicFrozenVariant.FinalizeIceCube(api);
 
-        if (api.ModLoader.IsModEnabled("hydrateordiedrate"))
-        {
-            HydrateOrDiedrateCompatibility.FixSnow(api);
-            //TODO: see if I can change the snowball model to reflect that you have multiple items on the stack
-            //TODO: Collecting snow should be slower
-            //TODO: Moving snow with shovel
-            //TODO: Allowing to grab snow with buckets
-        }
+        //TODO: see if I can change the snowball model to reflect that you have multiple items on the stack
+        //TODO: Collecting snow should be slower
+        //TODO: Moving snow with shovel
+        //TODO: Allowing to grab snow with buckets
         base.AssetsFinalize(api);
     }
 }

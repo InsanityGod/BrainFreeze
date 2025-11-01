@@ -1,11 +1,20 @@
-﻿using HydrateOrDiedrate;
+﻿using HarmonyLib;
+using HydrateOrDiedrate;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Vintagestory.API.Common;
 
-namespace BrainFreeze.Code.Compatibility;
+namespace BrainFreeze.Code.HarmonyPatches.HydrateOrDieDrate;
 
-public static class HydrateOrDiedrateCompatibility
+[HarmonyPatchCategory("hydrateordiedrate")]
+[HarmonyPatch("HydrateOrDiedrate.HydrateOrDiedrateModSystem", "AssetsFinalize")]
+internal static class AssetsFinalizePatch
 {
-    internal static void FixSnow(ICoreAPI api)
+    [HarmonyPostfix]
+    public static void PostFix(ICoreAPI api)
     {
         var water = api.World.GetItem(new AssetLocation("waterportion"));
 
