@@ -133,11 +133,11 @@ public static class DynamicFrozenVariant //TODO cleanup
         var frozenPrefix = new FrozenNamePrefix(frozenItem);
         frozenItem.CollectibleBehaviors = frozenItem.CollectibleBehaviors.Append(frozenPrefix);
         frozenPrefix.OnLoaded(api);
-        var tst = frozenItem.CodeWithoutFrozenPart();
-        var nonFrozenItem = api.World.GetItem(new AssetLocation(tst));
+        var nonFrozenCode = new AssetLocation(frozenItem.Code.Domain, frozenItem.PathWithoutFrozenPart());
+        var nonFrozenItem = api.World.GetItem(nonFrozenCode);
         if (nonFrozenItem is null)
         {
-            api.Logger.Warning("[BrainFreeze] Could not find {0} for auto frozen variant registry", frozenItem.CodeWithoutFrozenPart());
+            api.Logger.Warning("[BrainFreeze] Could not find {0} for auto frozen variant registry", nonFrozenCode);
             return false;
         }
 
@@ -197,7 +197,7 @@ public static class DynamicFrozenVariant //TODO cleanup
         {
             inContainerProps["AllowSpill"] = false;
         }
-        else api.Logger.Warning("waterTightContainerProps where not defined for {0}, is this really a liquid?? (BrainFreeze)", frozenItem.CodeWithoutFrozenPart());
+        else api.Logger.Warning("waterTightContainerProps where not defined for {0}:{1}, is this really a liquid?? (BrainFreeze)", frozenItem.Code.Domain, frozenItem.PathWithoutFrozenPart());
 
         var blendedOverlays = new BlendedOverlayTexture[]
         {

@@ -15,11 +15,11 @@ public class FrozenNamePrefix(CollectibleObject collObj) : CollectibleBehavior(c
             sb.Clear();
             sb.Append(Lang.Get("brainfreeze:frozen"));
             sb.Append(' ');
-            var withoutFrozenCode = $"{itemCode.Domain}:item-{itemStack.Collectible.CodeWithoutFrozenPart(itemCode.Path)}";
+            var withoutFrozenCode = $"{itemCode.Domain}:item-{itemStack.Collectible.PathWithoutFrozenPart()}";
             var withoutFrozenStr = Lang.Get(withoutFrozenCode);
             if(withoutFrozenCode == withoutFrozenStr)
             {
-                withoutFrozenStr = Lang.Get($"{itemCode.Domain}:incontainer-item-{itemStack.Collectible.CodeWithoutFrozenPart(itemCode.Path)}");
+                withoutFrozenStr = Lang.Get($"{itemCode.Domain}:incontainer-item-{itemStack.Collectible.PathWithoutFrozenPart()}");
             }
             sb.Append(withoutFrozenStr);
         }

@@ -27,7 +27,7 @@ public static class GuiFixes
             if (content?.Collectible?.Variant == null || content.Collectible.Variant["brainfreeze"] == null) continue;
             var code = content.Collectible.Code;
             var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-            var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
+            var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.PathWithoutFrozenPart()}";
             __result = __result.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
         }
     }
@@ -40,7 +40,7 @@ public static class GuiFixes
         if (content?.Collectible?.Variant == null || content.Collectible.Variant["brainfreeze"] == null) return;
         var code = content.Collectible.Code;
         var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
+        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.PathWithoutFrozenPart()}";
         __result = __result.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
     }
 
@@ -52,7 +52,7 @@ public static class GuiFixes
         if (content?.Collectible?.Variant == null || content.Collectible.Variant["brainfreeze"] == null) return;
         var code = content.Collectible.Code;
         var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
+        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.PathWithoutFrozenPart()}";
         dsc.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
     }
 
@@ -64,7 +64,7 @@ public static class GuiFixes
         if (content?.Collectible?.Variant == null || content.Collectible.Variant["brainfreeze"] == null) return;
         var code = content.Collectible.Code;
         var inContainerCode = $"{code.Domain}:incontainer-item-{code.Path}";
-        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.CodeWithoutFrozenPart(code.Path)}";
+        var originalCode = $"{code.Domain}:incontainer-item-{content.Collectible.PathWithoutFrozenPart()}";
         __result = __result.Replace(inContainerCode, $"{Lang.Get("brainfreeze:frozen")} {Lang.Get(originalCode)}");
     }
 }

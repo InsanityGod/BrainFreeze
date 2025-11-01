@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using InsanityLib.Util.SpanUtil;
+using System.Linq;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -29,18 +31,18 @@ public static class Util
         return result;
     }
 
-    public static string CodeWithoutFrozenPart(this CollectibleObject obj, string code = null)
+    public static string PathWithoutFrozenPart(this CollectibleObject obj)
     {
-        var i = 0;
-        for (var index = 0; index < obj.VariantStrict.Count; index++)
+        var builder = new StringBuilder();
+        builder.Append(obj.FirstCodePartAsSpan());
+        foreach((var variantKey, var variantValue) in obj.VariantStrict)
         {
-            if(obj.VariantStrict.GetKeyAtIndex(index) == "brainfreeze") break;
-            if (!string.IsNullOrEmpty(obj.VariantStrict.GetValueAtIndex(index))) i++; //this is to deal with some weird empty variants added by other mods
-        }
-        
-        var parts = (code ?? obj.Code.ToString()).Split('-').ToList();
-        parts.RemoveAt(i + 1);
+            if(string.IsNullOrWhiteSpace(variantValue) || variantKey == "brainfreeze") continue;
 
-        return string.Join("-", parts);
+            builder.Append('-');
+            builder.Append(variantValue);
+        }
+
+        return builder.ToString();
     }
 }
