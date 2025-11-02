@@ -24,7 +24,7 @@
   //Interaction
   "break-ice": "Turn into Ice Cubes",
 
-  "frozen": "Frozen",
+  "frozen": "Frozen {0}",
   //Item
   "item-icecubes": "Ice Cubes",
   "icecubes-dynamicdesc": "Made by chiseling {0} into small pieces",

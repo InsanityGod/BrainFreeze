@@ -8,20 +8,15 @@ public class FrozenNamePrefix(CollectibleObject collObj) : CollectibleBehavior(c
 {
     public override void GetHeldItemName(StringBuilder sb, ItemStack itemStack)
     {
-        var code = $"{itemStack.Collectible.Code.Domain}:item-{itemStack.Collectible.Code.Path}";
-        if (sb.ToString() == code)
+        var itemCode = itemStack.Collectible.Code;
+        
+        var withoutFrozenCode = $"{itemCode.Domain}:item-{itemStack.Collectible.PathWithoutFrozenPart()}";
+        var withoutFrozenStr = Lang.Get(withoutFrozenCode);
+        if(withoutFrozenCode == withoutFrozenStr)
         {
-            var itemCode = itemStack.Collectible.Code;
-            sb.Clear();
-            sb.Append(Lang.Get("brainfreeze:frozen"));
-            sb.Append(' ');
-            var withoutFrozenCode = $"{itemCode.Domain}:item-{itemStack.Collectible.PathWithoutFrozenPart()}";
-            var withoutFrozenStr = Lang.Get(withoutFrozenCode);
-            if(withoutFrozenCode == withoutFrozenStr)
-            {
-                withoutFrozenStr = Lang.Get($"{itemCode.Domain}:incontainer-item-{itemStack.Collectible.PathWithoutFrozenPart()}");
-            }
-            sb.Append(withoutFrozenStr);
+            withoutFrozenStr = Lang.Get($"{itemCode.Domain}:incontainer-item-{itemStack.Collectible.PathWithoutFrozenPart()}");
         }
+
+        sb.Replace($"{itemStack.Collectible.Code.Domain}:item-{itemStack.Collectible.Code.Path}",Lang.Get("brainfreeze:frozen", withoutFrozenStr));
     }
 }
