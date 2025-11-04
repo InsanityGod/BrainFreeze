@@ -203,22 +203,34 @@ public static class DynamicFrozenVariant //TODO cleanup
         {
             new()
             {
-                Base = new AssetLocation("game:block/liquid/ice/lake1")
+                Base = new AssetLocation("game","block/liquid/ice/lake1")
             }
-        }; 
-        //TODO if the base texture is not 32x32 this is ignored and gives warning, add extra handling for this
+        };
 
         var firstTexture = frozenItem.FirstTexture;
         if (firstTexture != null)
         {
 
-            if (firstTexture.Base.ToString() == "game:block/liquid/waterportion")
+            if (firstTexture.Base.Domain == "game" && firstTexture.Base.Path.Contains("block/liquid/waterportion"))
             {
-                firstTexture.Base = new AssetLocation("game:block/liquid/ice/lake1");
+                firstTexture.Base = new AssetLocation("game","block/liquid/ice/lake1");
             }
             else
             {
-                firstTexture.BlendedOverlays = blendedOverlays;
+                //TODO this should ideally be done client side, but for now it's done server side.
+                (int height, int width) = api.Assets.CheckTextureSize(firstTexture.Base);
+
+                if (height == 24 && width == 24)
+                {
+                    blendedOverlays[0].Base.Domain = "brainfreeze";
+                }
+                else if (!(height == 32 && width == 32))
+                {
+                    api.Logger.Warning("[BrainFreeze] The texture {0} used by {1}:{2} does not have a supported size for automatic frozen variant overlay blending. Supported sizes are: 32x32, 24x24. No ice overlay will be applied.", firstTexture.Base, frozenItem.Code.Domain, frozenItem.Code.Path);
+                    blendedOverlays = null;
+                }
+
+                if (blendedOverlays is not null) firstTexture.BlendedOverlays = blendedOverlays;
             }
         }
 
@@ -229,7 +241,7 @@ public static class DynamicFrozenVariant //TODO cleanup
             {
                 inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
             }
-            else
+            else if(blendedOverlays is not null)
             {
                 inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
             }

@@ -1,5 +1,5 @@
 ﻿using InsanityLib.Util.SpanUtil;
-using System.Linq;
+using SkiaSharp;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -44,5 +44,18 @@ public static class Util
         }
 
         return builder.ToString();
+    }
+
+    public static (int width, int height) CheckTextureSize(this IAssetManager assetManager, AssetLocation textureLocation)
+    {
+        var texturePath = textureLocation.Clone().WithPathPrefixOnce("textures/").WithPathAppendixOnce(".png");
+        IAsset textureAsset = assetManager.TryGet(texturePath);
+
+        using var stream = new SKMemoryStream(textureAsset.Data);
+        using var codec = SKCodec.Create(stream);
+
+        if (codec == null) return (0, 0);
+
+        return (codec.Info.Width, codec.Info.Height);
     }
 }

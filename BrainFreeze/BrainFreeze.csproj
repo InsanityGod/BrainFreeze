@@ -40,6 +40,10 @@
       <HintPath>$(VINTAGE_STORY)/Lib/0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
+	  <Reference Include="SkiaSharp">
+		  <HintPath>$(VINTAGE_STORY)/Lib/SkiaSharp.dll</HintPath>
+		  <Private>False</Private>
+	  </Reference>
     <Reference Include="VintagestoryLib">
       <HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath>
       <Private>false</Private>
@@ -71,6 +75,10 @@
 	<Content Include="..\LICENSE">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</Content>
+</ItemGroup>
+
+<ItemGroup>
+  <Folder Include="assets\brainfreeze\textures\block\liquid\ice\" />
 </ItemGroup>
 
 </Project>
