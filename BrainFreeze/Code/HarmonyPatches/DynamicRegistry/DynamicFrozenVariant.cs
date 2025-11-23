@@ -13,6 +13,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.Client.NoObf;
 using Vintagestory.ServerMods;
 using Vintagestory.ServerMods.NoObf;
 
@@ -199,54 +200,6 @@ public static class DynamicFrozenVariant //TODO cleanup
         }
         else api.Logger.Warning("waterTightContainerProps where not defined for {0}:{1}, is this really a liquid?? (BrainFreeze)", frozenItem.Code.Domain, frozenItem.PathWithoutFrozenPart());
 
-        var blendedOverlays = new BlendedOverlayTexture[]
-        {
-            new()
-            {
-                Base = new AssetLocation("game","block/liquid/ice/lake1")
-            }
-        };
-
-        var firstTexture = frozenItem.FirstTexture;
-        if (firstTexture != null)
-        {
-
-            if (firstTexture.Base.Domain == "game" && firstTexture.Base.Path.Contains("block/liquid/waterportion"))
-            {
-                firstTexture.Base = new AssetLocation("game","block/liquid/ice/lake1");
-            }
-            else
-            {
-                //TODO this should ideally be done client side, but for now it's done server side.
-                (int height, int width) = api.Assets.CheckTextureSize(firstTexture.Base);
-
-                if (height == 24 && width == 24)
-                {
-                    blendedOverlays[0].Base.Domain = "brainfreeze";
-                }
-                else if (!(height == 32 && width == 32))
-                {
-                    api.Logger.Warning("[BrainFreeze] The texture {0} used by {1}:{2} does not have a supported size for automatic frozen variant overlay blending. Supported sizes are: 32x32, 24x24. No ice overlay will be applied.", firstTexture.Base, frozenItem.Code.Domain, frozenItem.Code.Path);
-                    blendedOverlays = null;
-                }
-
-                if (blendedOverlays is not null) firstTexture.BlendedOverlays = blendedOverlays;
-            }
-        }
-
-        if(inContainerProps != null)
-        {
-            var inContainerTextureStr = inContainerProps["texture"]["base"].ToString();
-            if (inContainerTextureStr == "block/liquid/waterportion" || inContainerTextureStr == "game:block/liquid/waterportion")
-            {
-                inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
-            }
-            else if(blendedOverlays is not null)
-            {
-                inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
-            }
-        }
-
         if(frozenItem.CreativeInventoryStacks != null)
         {
             foreach (var content in frozenItem.CreativeInventoryStacks.SelectMany(inf => inf.Stacks)
@@ -289,6 +242,77 @@ public static class DynamicFrozenVariant //TODO cleanup
         }
 
         return true;
+    }
+
+    [HarmonyPatch(typeof(ClientSystemStartup), "prepareAsync", typeof(IList<Item>))]
+    [HarmonyPrefix]
+    public static void PrepareFrozenTextures(IList<Item> items, ClientMain ___game)
+    {
+        if(___game.Side != EnumAppSide.Client) return;
+        foreach(var item in items)
+        {
+            if (item.Variant["brainfreeze"] is null) continue;
+
+            try
+            {
+                FixFrozenTextures(___game.api, item);
+            }
+            catch(Exception ex)
+            {
+                ___game.Logger.Warning("[BrainFreeze] an error occured while adjusting textures for frozen liquid '{0}' frozen liquid likely won't look very frozen, exception: {1}", item.Code, ex);
+            }
+        }
+    }
+
+    public static void FixFrozenTextures(ICoreAPI api, Item frozenItem)
+    {
+        var blendedOverlays = new BlendedOverlayTexture[]
+        {
+            new()
+            {
+                Base = new AssetLocation("game","block/liquid/ice/lake1")
+            }
+        };
+
+        var firstTexture = frozenItem.FirstTexture;
+        if (firstTexture != null)
+        {
+
+            if (firstTexture.Base.Domain == "game" && firstTexture.Base.Path.Contains("block/liquid/waterportion"))
+            {
+                firstTexture.Base = new AssetLocation("game","block/liquid/ice/lake1");
+            }
+            else
+            {
+                //TODO this should ideally be done client side, but for now it's done server side.
+                (int height, int width) = api.Assets.CheckTextureSize(firstTexture.Base);
+
+                if (height == 24 && width == 24)
+                {
+                    blendedOverlays[0].Base.Domain = "brainfreeze";
+                }
+                else if (!(height == 32 && width == 32))
+                {
+                    api.Logger.Warning("[BrainFreeze] The texture {0} used by {1}:{2} does not have a supported size for automatic frozen variant overlay blending. Supported sizes are: 32x32, 24x24. No ice overlay will be applied.", firstTexture.Base, frozenItem.Code.Domain, frozenItem.Code.Path);
+                    blendedOverlays = null;
+                }
+
+                if (blendedOverlays is not null) firstTexture.BlendedOverlays = blendedOverlays;
+            }
+        }
+
+        if(frozenItem.Attributes["waterTightContainerProps"].Token is JContainer inContainerProps)
+        {
+            var inContainerTextureStr = inContainerProps["texture"]["base"].ToString();
+            if (inContainerTextureStr == "block/liquid/waterportion" || inContainerTextureStr == "game:block/liquid/waterportion")
+            {
+                inContainerProps["texture"]["base"] = "game:block/liquid/ice/lake1";
+            }
+            else if(blendedOverlays is not null)
+            {
+                inContainerProps["texture"]["blendedOverlays"] = JToken.FromObject(blendedOverlays);
+            }
+        }
     }
 
     public static void FinalizeIceCube(ICoreAPI api)

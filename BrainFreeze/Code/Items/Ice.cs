@@ -263,11 +263,19 @@ public class Ice : Item
 
     public override void OnUnloaded(ICoreAPI api)
     {
-        foreach(var mesh in Meshrefs.Values)
+        try
         {
-            mesh.Dispose();
+            foreach(var mesh in Meshrefs.Values)
+            {
+                mesh.Dispose();
+            }
+            ObjectCacheUtil.Delete(api, cacheKey);
         }
-        ObjectCacheUtil.Delete(api, cacheKey);
+        catch
+        {
+            //This can happen when for instance the game forcefully shuts down due to server errors.
+            //Just ignoring this so people don't think BrainFreeze was the cause of the shutdown when really this was a result of another error.
+        }
         base.OnUnloaded(api);
     }
 }
