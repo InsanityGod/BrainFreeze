@@ -1,8 +1,8 @@
 ﻿using BrainFreeze.Code.Behaviors;
 using BrainFreeze.Config;
 using HarmonyLib;
-using InsanityLib.Util.ContentFeatures;
-using InsanityLib.Util.SpanUtil;
+using InsanityLib.Extended.Transitions;
+using InsanityLib.Extensions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

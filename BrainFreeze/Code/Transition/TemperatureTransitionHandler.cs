@@ -1,4 +1,4 @@
-﻿using InsanityLib.Handlers;
+﻿using InsanityLib.Extended.Transitions;
 using System;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
@@ -8,22 +8,18 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.Transition;
 
-public class TemperatureTransitionHandler : TransitionHandler
+public class TemperatureTransitionHandler : TransitionHandler, ITransitionHandler
 {
     public bool Invert { get; private set; }
-    
-    public override void LoadAttributes(JsonObject attributes)
+
+    public void LoadAttributes(JsonObject attributes)
     {
-        if(attributes == null) return;
         Invert = attributes["Invert"].AsBool(Invert);
     }
 
     public const float DefaultFreezePoint = 0;
-    public static float GetFreezingPoint(ItemSlot slot)
-    {
-        var attr = slot.Itemstack?.Collectible.Attributes;
-        return attr != null ? attr["freezePoint"].AsFloat() : DefaultFreezePoint;
-    }
+
+    public static float GetFreezingPoint(ItemSlot slot) => slot.Itemstack?.Collectible.Attributes?["freezePoint"].AsFloat(DefaultFreezePoint) ?? DefaultFreezePoint;
 
     public override float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, float currentResult)
     {
@@ -58,7 +54,7 @@ public class TemperatureTransitionHandler : TransitionHandler
         return climate.Temperature;
     }
 
-    public override void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props,  ref ItemStack result)
+    public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, ref ItemStack result)
     {
         //TODO: I wish there was a better way to do this...
         if (result.Collectible?.MatterState == EnumMatterState.Liquid)

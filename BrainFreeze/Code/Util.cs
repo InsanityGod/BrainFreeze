@@ -1,4 +1,4 @@
-﻿using InsanityLib.Util.SpanUtil;
+﻿using InsanityLib.Extensions;
 using SkiaSharp;
 using System.Text;
 using Vintagestory.API.Client;

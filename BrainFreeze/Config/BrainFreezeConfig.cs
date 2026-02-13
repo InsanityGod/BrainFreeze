@@ -1,4 +1,4 @@
-﻿using InsanityLib.Attributes.Auto.Config;
+﻿using InsanityLib.Generators.Attributes;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -8,7 +8,7 @@ namespace BrainFreeze.Config;
 public class BrainFreezeConfig
 {
     [AutoConfig("BrainFreezeConfig.json", ServerSync = true)]
-    public static BrainFreezeConfig Instance { get; private set; }
+    public static BrainFreezeConfig Instance { get; internal set; }
 
     /// <summary>
     /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now).

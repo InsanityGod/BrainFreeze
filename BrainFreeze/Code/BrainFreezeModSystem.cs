@@ -1,14 +1,23 @@
 ﻿using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
-using InsanityLib.Attributes.Auto;
 using Vintagestory.API.Common;
 
-[assembly: AutoPatcher("brainfreeze")]
-[assembly: AutoRegistry("brainfreeze")]
 namespace BrainFreeze.Code;
 
-public class BrainFreezeModSystem : ModSystem
+public partial class BrainFreezeModSystem : ModSystem
 {
     public override double ExecuteOrder() => 0.11;
+
+    public override void StartPre(ICoreAPI api)
+    {
+        base.StartPre(api);
+        AutoSetup(api);
+    }
+
+    public override void AssetsLoaded(ICoreAPI api)
+    {
+        base.AssetsLoaded(api);
+        AutoAssetsLoaded(api);
+    }
 
     //TODO if items are in barrel while liquid is at certain level and freezes, the slot should become locked
 
@@ -20,7 +29,8 @@ public class BrainFreezeModSystem : ModSystem
 
     public override void AssetsFinalize(ICoreAPI api)
     {
-        if(api.Side == EnumAppSide.Client) return;
+        base.AssetsFinalize(api);
+        if (api.Side == EnumAppSide.Client) return;
 
         foreach (var item in api.World.Items)
         {
@@ -36,5 +46,11 @@ public class BrainFreezeModSystem : ModSystem
         //TODO: Moving snow with shovel
         //TODO: Allowing to grab snow with buckets
         base.AssetsFinalize(api);
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        AutoDispose();
     }
 }

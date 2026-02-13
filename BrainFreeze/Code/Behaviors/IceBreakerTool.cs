@@ -1,5 +1,5 @@
 ﻿using BrainFreeze.Code.Items;
-using InsanityLib.Util;
+using InsanityLib.Extensions;
 using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
