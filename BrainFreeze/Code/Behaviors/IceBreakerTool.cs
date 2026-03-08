@@ -84,7 +84,10 @@ public class IceBreakerTool(CollectibleObject collObj) : CollectibleBehavior(col
         }
 
         var lakeIce = world.GetBlock(new AssetLocation("game", "lakeice"));
-        world.PlaySoundAt(lakeIce?.Sounds?.GetBreakSound(EnumTool.Chisel), entity, (entity as EntityPlayer)?.Player);
+        if(lakeIce?.Sounds is not null)
+        {
+            world.PlaySoundAt(lakeIce.Sounds.GetBreakSound(EnumTool.Chisel), entity, (entity as EntityPlayer)?.Player);
+        }
         return true;
     }
 

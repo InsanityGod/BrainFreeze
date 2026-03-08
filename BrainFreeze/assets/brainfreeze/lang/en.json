@@ -9,14 +9,22 @@
   "transition-freeze-duration-hours": "Will <font color=\"burlywood\">freeze</font> in {p0:less than an hour|# hour|# hours}",
   "transition-freeze-duration-days": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a day|# day|# days}",
   "transition-freeze-duration-years": "Will <font color=\"burlywood\">freeze</font> in {p0:less than a year|# year|# years}",
-  "transition-freeze-handbook": "Freezes into",
+
+  "handbook-processesinto-transition-freeze-hours": "After {p0:less than an hour|a hour|# hours} on average, freezes into",
+  "handbook-processesinto-transition-freeze-days": "After {p0:|a day|# days} on average, freezes into",
+  "handbook-processesinto-transition-freeze-years": "After {p0:|a year|#.# years} on average, freezes into",
+  "handbook-createdby-transition-freeze": "Freezing",
 
   "transition-melt": "<font color=\"burlywood\">Meltable.</font>",
   "transition-melt-progression": "<font color=\"burlywood\">Meltable.</font> {0}% melted",
   "transition-melt-duration-hours": "Will <font color=\"burlywood\">melt</font> in {p0:less than an hour|# hour|# hours}",
   "transition-melt-duration-days": "Will <font color=\"burlywood\">melt</font> in {p0:less than a day|# day|# days}",
   "transition-melt-duration-years": "Will <font color=\"burlywood\">melt</font> in {p0:less than a year|# year|# years}",
-  "transition-melt-handbook": "Melts into",
+
+  "handbook-processesinto-transition-melt-hours": "After {p0:less than an hour|a hour|# hours} on average, melts into",
+  "handbook-processesinto-transition-melt-days": "After {p0:|a day|# days} on average, melts into",
+  "handbook-processesinto-transition-melt-years": "After {p0:|a year|#.# years} on average, melts into",
+  "handbook-createdby-transition-melt": "Melting",
 
   //Tabnames
   "game:tabname-brainfreeze": "Brain Freeze",
