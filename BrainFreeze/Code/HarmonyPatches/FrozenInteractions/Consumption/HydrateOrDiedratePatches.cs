@@ -2,7 +2,6 @@
 using HarmonyLib;
 using HydrateOrDiedrate;
 using InsanityLib.Extended.Transitions;
-using InsanityLib.Extensions;
 using System.Linq;
 using Vintagestory.API.Common;
 
