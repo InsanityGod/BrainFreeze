@@ -1,5 +1,10 @@
-﻿using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
+﻿using BrainFreeze.Code.Behaviors;
+using BrainFreeze.Code.HarmonyPatches.DynamicRegistry;
+using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Datastructures;
+using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code;
 
@@ -34,6 +39,13 @@ public partial class BrainFreezeModSystem : ModSystem
 
         foreach (var item in api.World.Items)
         {
+            if(item is ItemChisel)
+            {
+                var beh = new IceBreakerTool(item);
+                beh.Initialize(new JsonObject(new JObject()));
+
+                item.CollectibleBehaviors = item.CollectibleBehaviors.Append(beh);
+            }
             if (item.Variant["brainfreeze"] is null) continue;
 
             DynamicFrozenVariant.TryFinalizeFrozenCollectible(api, item);
