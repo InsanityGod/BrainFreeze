@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -100,16 +101,6 @@ public static class DynamicFrozenVariant //TODO cleanup
                 ..skipVariants,
                 ..skipVariants.Select(static existing => $"{existing}-brainfreeze")
             ];
-        }
-    }
-
-    [HarmonyPatch(typeof(RegistryObjectType), "solveByType")]
-    [HarmonyPrefix]
-    public static void MakeByTypeIgnoreBrainFreeze(ref string codePath)
-    {
-        if (codePath.EndsWith("-brainfreeze"))
-        {
-            codePath = codePath[..^12]; //12 is the length of "-brainfreeze"
         }
     }
 
@@ -351,5 +342,21 @@ public static class DynamicFrozenVariant //TODO cleanup
             creativeStacks.Add(stack);
         }
         iceCube.CreativeInventoryStacks = [.. creativeStacks];
+    }
+}
+
+[HarmonyPatch]
+public static class DynamicFrozenVariant2
+{
+    [HarmonyTargetMethod]
+    public static MethodBase TargetMethod() => AccessTools.Method(typeof(RegistryObjectType), "solveByType") ?? AccessTools.Method(typeof(RegistryObjectType), "Resolve");
+
+    [HarmonyPrefix]
+    public static void MakeByTypeIgnoreBrainFreeze(ref string codePath)
+    {
+        if (codePath.EndsWith("-brainfreeze"))
+        {
+            codePath = codePath[..^12]; //12 is the length of "-brainfreeze"
+        }
     }
 }
