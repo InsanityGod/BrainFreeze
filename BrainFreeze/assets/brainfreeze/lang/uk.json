@@ -1,0 +1,7 @@
+{
+    "transition-melt": "<font color=\"burlywood\">Тане.</font>",
+    "transition-melt-progression": "<font color=\"burlywood\">Тане.</font> {0}% розтануло",
+    "transition-melt-duration-hours": "<font color=\"burlywood\">Тане.</font> Розтане {p0: менше ніж за годину|через # годину|через # години|через # години|через # години|через # годин}",
+    "transition-melt-duration-days": "<font color=\"burlywood\">Тане.</font> Розтане {p0:менше ніж через день|через # день|через # дні|через # дні|через # дні|через # днів}",
+    "handbook-createdby-transition-melt": "Плавлення"
+}
