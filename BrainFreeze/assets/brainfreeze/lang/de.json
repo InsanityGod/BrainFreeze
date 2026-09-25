@@ -1,0 +1,11 @@
+{
+    "liquid-frozen": "Flüssigkeit ist gefroren",
+    "consumable-frozen": "Zu kalt für den Konsum",
+    "transition-freeze-duration-hours": "Wird <font color=\"burlywood\">einfrieren</font> in {p0:less than an hour|# hour|# hours}",
+    "transition-freeze-duration-days": "Wird <font color=\"burlywood\">einfrieren</font> in {p0:less than a day|# day|# days}",
+    "transition-freeze-duration-years": "Wird <font color=\"burlywood\">einfrieren</font> in {p0:less than a year|# year|# years}",
+    "game:tabname-brainfreeze": "Gehirnfrost",
+    "frozen": "Gefroren",
+    "item-icecubes": "Eiswürfel",
+    "icecubes-dye-*": "Wie farbenfroh!"
+}
