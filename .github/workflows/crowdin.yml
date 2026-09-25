@@ -92,21 +92,13 @@ jobs:
         id: changes
         shell: bash
         run: |
-          echo "Git status:"
-          git status --short
-
-          echo
-          echo "Diff:"
-          git diff -- "$MOD_LANG_PATH"
-
-          echo
-          if git diff --quiet -- "$MOD_LANG_PATH"; then
+          if git status --porcelain -- "$MOD_LANG_PATH" | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Translation changes detected:"
+            git status --short -- "$MOD_LANG_PATH"
+          else
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No translation changes detected."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Translation changes detected."
-            git diff --stat -- "$MOD_LANG_PATH"
           fi
 
       - name: Prepare translation branch
