@@ -1,0 +1,15 @@
+{
+    "liquid-frozen": "Жидкость заморожена",
+    "consumable-frozen": "Слишком заморожено, чтобы использовать",
+    "transition-freeze": "<font color=\"burlywood\">Заморозка.</font>",
+    "transition-freeze-progression": "<font color=\"burlywood\">Заморозка.</font> {0}% заморожено",
+    "transition-freeze-duration-hours": "Станет<font color=\"burlywood\">замороженным</font> через {p0:less than an hour|# hour|# hours}",
+    "transition-freeze-duration-days": "Станет<font color=\"burlywood\">замороженным</font> через {p0:less than a day|# day|# days}",
+    "transition-freeze-duration-years": "Станет<font color=\"burlywood\">замороженным</font> через {p0:less than a year|# year|# years}",
+    "game:tabname-brainfreeze": "Заморозка мозгов",
+    "break-ice": "Разбить лед",
+    "frozen": "Заморожено",
+    "item-icecubes": "Ледяные Кубики",
+    "icecubes-dynamicdesc": "Сделано путем раскалывания {0} на маленькие части",
+    "icecubes-dye-*": "Как красочно!"
+}
