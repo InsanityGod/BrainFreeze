@@ -3,15 +3,13 @@ name: Update translations
 on:
   workflow_dispatch:
 
-env:
-  # ============================================================
-  # Mod-specific configuration
-  # ============================================================
 
+env:
+  # Mod-specific
   MOD_LANG_PATH: "BrainFreeze/assets/brainfreeze/lang"
   TRANSLATION_ZIP: "brainfreeze-theinsanitygod.zip"
 
-  # Dropbox shared folder
+  # Translation source
   DROPBOX_FOLDER: "https://www.dropbox.com/scl/fo/q7u3idxz3edsytki8n6m4/h"
   DROPBOX_KEY: "y14td00uvfhihpqhffuagmjtd"
 
@@ -32,30 +30,36 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
+          
       - name: Download translations
         shell: bash
         run: |
           URL="${DROPBOX_FOLDER}/${TRANSLATION_ZIP}?rlkey=${DROPBOX_KEY}&e=1&dl=1"
 
-          echo "Downloading ${TRANSLATION_ZIP}..."
+          echo "Downloading:"
+          echo "$URL"
 
-          curl --fail --location --silent --show-error \
+          curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
             "$URL" \
             --output translations.zip
 
-          echo "Download complete:"
+          echo
+          echo "Downloaded:"
           ls -lh translations.zip
 
       - name: Extract translations
         shell: bash
         run: |
           rm -rf translations
-          mkdir translations
+          mkdir -p translations
 
           unzip -q translations.zip -d translations
 
-          echo "Files in archive:"
+          echo "Archive contents:"
           find translations -type f -print
 
       - name: Install translations
@@ -63,8 +67,12 @@ jobs:
         run: |
           mkdir -p "$MOD_LANG_PATH"
 
-          echo "Translation JSON files found in archive:"
+          echo "Translation JSON files:"
           find translations -type f -name '*.json' -print
+
+          echo
+          echo "Copying translations to:"
+          echo "$MOD_LANG_PATH"
 
           find translations \
             -type f \
@@ -72,7 +80,7 @@ jobs:
             -exec cp {} "$MOD_LANG_PATH/" \;
 
           echo
-          echo "Installed translations:"
+          echo "Files now in language directory:"
           find "$MOD_LANG_PATH" \
             -maxdepth 1 \
             -type f \
@@ -84,13 +92,20 @@ jobs:
         id: changes
         shell: bash
         run: |
+          echo "Git status:"
+          git status --short
+
+          echo
+          echo "Diff:"
+          git diff -- "$MOD_LANG_PATH"
+
+          echo
           if git diff --quiet -- "$MOD_LANG_PATH"; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No translation changes detected."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-
-            echo "Translation changes detected:"
+            echo "Translation changes detected."
             git diff --stat -- "$MOD_LANG_PATH"
           fi
 
@@ -124,17 +139,13 @@ jobs:
         run: |
           git add "$MOD_LANG_PATH"
 
-          git commit \
-            -m "Update translations"
+          git commit -m "Update translations"
 
       - name: Push translation branch
         if: steps.changes.outputs.changed == 'true'
         shell: bash
         run: |
-          git push \
-            --force \
-            origin \
-            "HEAD:$TRANSLATION_BRANCH"
+          git push --force origin "HEAD:$TRANSLATION_BRANCH"
 
       - name: Create or update pull request
         if: steps.changes.outputs.changed == 'true'
@@ -142,12 +153,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          PR_NUMBER="$(gh pr list \
-            --head "$TRANSLATION_BRANCH" \
-            --base "$BASE_BRANCH" \
-            --state open \
-            --json number \
-            --jq '.[0].number')"
+          PR_NUMBER="$(
+            gh pr list \
+              --head "$TRANSLATION_BRANCH" \
+              --base "$BASE_BRANCH" \
+              --state open \
+              --json number \
+              --jq '.[0].number'
+          )"
 
           if [ -z "$PR_NUMBER" ]; then
             gh pr create \
