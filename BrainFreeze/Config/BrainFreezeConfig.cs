@@ -10,10 +10,10 @@ public class BrainFreezeConfig
     [AutoConfig("BrainFreezeConfig.json", ServerSync = true)]
     public static BrainFreezeConfig Instance { get; internal set; }
 
-    [Category("Transitions")]
     /// <summary>
     /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now).
     /// </summary>
+    [Category("Transitions")]
     public Dictionary<string, float> AutoRegFrozenVariants { get; set; } = new Dictionary<string, float>()
     {
             {"waterportion",         -0f },
