@@ -1,4 +1,7 @@
 {
   "Code": "freeze",
-  "Handler": "TemperatureTransitionHandler"
+  "Handler": "TemperatureTransitionHandler",
+  "Attributes": {
+    "GlobalMultiplier": "config://BrainFreezeConfig/GlobalFreezingSpeedMultiplier"
+  }
 }

@@ -2,6 +2,7 @@
   "Code": "melt",
   "Handler": "TemperatureTransitionHandler",
   "Attributes": {
-    "invert": true
+    "Invert": true,
+    "GlobalMultiplier": "config://BrainFreezeConfig/GlobalMeltingSpeedMultiplier"
   }
 }

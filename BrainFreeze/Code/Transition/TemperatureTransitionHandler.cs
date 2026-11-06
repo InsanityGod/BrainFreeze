@@ -8,14 +8,10 @@ using Vintagestory.GameContent;
 
 namespace BrainFreeze.Code.Transition;
 
-public class TemperatureTransitionHandler : TransitionHandler, ITransitionHandler
+public class TemperatureTransitionHandler : TransitionHandler<TemperatureTransitionAttributes>, ITransitionHandler
 {
-    public bool Invert { get; private set; }
-
-    public void LoadAttributes(JsonObject attributes)
-    {
-        Invert = attributes["Invert"].AsBool(Invert);
-    }
+    [Obsolete("Use Attributes.Invert instead")]
+    public bool Invert { get => Attributes.Invert; }
 
     public const float DefaultFreezePoint = 0;
 
@@ -33,8 +29,8 @@ public class TemperatureTransitionHandler : TransitionHandler, ITransitionHandle
         var temperature = GetTemperatureAtPos(world, inSlot, pos);
         var diffMult = Math.Abs(temperature - freezingPoint) / 5;
 
-        if (Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
-        return temperature <= freezingPoint ? diffMult : -diffMult;
+        if (Attributes.Invert) return temperature >= freezingPoint ? diffMult : -diffMult;
+        return (temperature <= freezingPoint ? diffMult : -diffMult) * Attributes.GlobalMultiplier;
     }
 
     //inSlot is just here to make hooking into this with harmony patches is easier (in case you want to make special inventory slots with heating properties)

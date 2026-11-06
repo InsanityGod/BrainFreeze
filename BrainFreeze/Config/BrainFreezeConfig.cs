@@ -10,6 +10,7 @@ public class BrainFreezeConfig
     [AutoConfig("BrainFreezeConfig.json", ServerSync = true)]
     public static BrainFreezeConfig Instance { get; internal set; }
 
+    [Category("Transitions")]
     /// <summary>
     /// Mapping of itemcode to freezing temperature (only checks on base code so you can't do per variant registration right now).
     /// </summary>
@@ -47,6 +48,22 @@ public class BrainFreezeConfig
             {"breadstarter",         -3f},
             {"bloodportion",         -2f},
     };
+
+    /// <summary>
+    /// Multiplier on how fast stuff should freeze
+    /// </summary>
+    [Category("Transitions")]
+    [Range(0, float.PositiveInfinity)]
+    [DefaultValue(1f)]
+    public float GlobalFreezingSpeedMultiplier { get; set; } = 1f;
+
+    /// <summary>
+    /// Multiplier on how fast stuff should melt
+    /// </summary>
+    [Category("Transitions")]
+    [Range(0, float.PositiveInfinity)]
+    [DefaultValue(1f)]
+    public float GlobalMeltingSpeedMultiplier { get; set; } = 1f;
 
     /// <summary>
     /// How much damage is taken every time you take damage from freezing.
